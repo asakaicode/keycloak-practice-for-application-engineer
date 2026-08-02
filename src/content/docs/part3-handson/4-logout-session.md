@@ -1,8 +1,82 @@
 ---
 title: ログアウトとセッション
-description: 執筆準備中のページです。
+description: keycloak.logout() の挙動と、SSO セッションのタイムアウト設定を理解します。
 ---
 
-:::caution[執筆中]
-このページはサイドバー構成の骨格として作成されたプレースホルダーです。内容は後続フェーズで執筆します。
+Part 3.3 まででログイン・トークンの中身・更新を見てきました。ここでは「ログアウトすると
+何が終わるのか」「放置しているとセッションはいつ切れるのか」を扱います。
+
+## `logout()` とリダイレクト先
+
+```js title="src/main.js"
+document.querySelector('#logout').addEventListener('click', () => {
+  keycloak.logout({ redirectUri: window.location.origin + '/' })
+})
+```
+
+`keycloak.logout()` を呼ぶと、ブラウザは Keycloak の `end_session` エンドポイント
+（[Part 2.3](/part2-concepts/3-auth-code-pkce/) の `.well-known` で見た `end_session_endpoint`）
+に一度移動し、Keycloak 側の SSO セッションを終了させたあと、`redirectUri` で指定した URL に
+戻ってきます。`redirectUri` を省略すると Keycloak のデフォルトのログアウト完了ページが
+表示されるため、多くの場合は明示的に指定します。
+
+:::caution
+`redirectUri` に指定できる URL は任意ではありません。[Part 3.1](/part3-handson/1-realm-client-user/)
+で Client を作った際に見た **Valid post logout redirect URIs** に登録されている URL だけが
+許可されます。`demo` realm の `frontend-spa` クライアントでは `http://localhost:5173/*` を
+登録済みです（`handson/keycloak/demo-realm.json` の `post.logout.redirect.uris` 属性）。
+登録されていない URL を指定するとログアウトが `Invalid redirect uri` エラーで失敗します。
 :::
+
+## SPA のログイン状態と Keycloak のセッションは別物
+
+ここが誤解しやすいポイントです。「SPA が“ログイン済み”だと認識している状態」と
+「Keycloak サーバー上に SSO セッションが存在する状態」は別のライフサイクルを持っています。
+
+- SPA 側の状態: `keycloak` オブジェクトが [Part 3.3](/part3-handson/3-tokens/) で見た通り
+  **メモリ上にだけ**トークンを保持しているため、ページを再読み込みすると消える
+- Keycloak 側の状態: ブラウザの Cookie に紐づく SSO セッションとして、**サーバー側で**
+  維持され続ける
+
+つまり、ページをリロードしただけでは SPA 側の見た目はログアウトしたように見えても、
+Keycloak 側の SSO セッションはまだ生きています。この状態で `onLoad: 'check-sso'` を使うと、
+ログイン画面を経由せずに静かに再ログインできます（[Part 3.2](/part3-handson/2-keycloak-js/)
+で扱った通り）。逆に `keycloak.logout()` を呼んだときだけ、SPA 側とサーバー側の両方の
+セッションが終了します。
+
+## SSO セッションのタイムアウト
+
+`demo` realm には、SSO セッションに関する2種類のタイムアウトを設定しています。
+
+```json title="handson/keycloak/demo-realm.json"
+"ssoSessionIdleTimeout": 1800,
+"ssoSessionMaxLifespan": 36000,
+```
+
+| 設定 | 値 | 意味 |
+|---|---|---|
+| SSO Session Idle | 1800秒（30分） | この時間**操作がない**と、セッションが切れる（操作するたびにリセットされる） |
+| SSO Session Max | 36000秒（10時間） | ログインからの**経過時間**の上限。操作していてもこの時間を超えると強制的に切れる |
+
+「Idle」は "何もしない時間"、「Max」は "ログインしてからの絶対時間" という軸の違いを
+押さえておくと混同しません。実務では、Idle を短めに（離席時の保護）、Max をやや長めに
+（1日の勤務時間程度）設定するのが一般的です。
+
+Admin Console では **Realm settings → Sessions** タブから、この2つに加えて
+Client ごとの Session Idle / Max（[Part 3.1](/part3-handson/1-realm-client-user/) の
+Client 作成時に Advanced タブで見た `Client Session Idle` / `Client Session Max`。
+デフォルトは realm 設定を継承する）も確認・変更できます。
+
+:::tip[今すぐ試す]
+ログイン中の SPA で「ログアウト」ボタンを押してみてください。
+
+**期待される結果**: 一瞬 `http://localhost:5173/` に戻ったあと、`onLoad: 'login-required'`
+の設定により即座に Keycloak のログイン画面へ再度リダイレクトされます（SPA は常にログインを
+要求する設定のため）。ブラウザの Network タブで確認すると、`end_session` エンドポイントへの
+リクエストが飛んでいるのが見えます。
+:::
+
+## 次へ
+
+[Part 3.5: ロールとクレームを UI に反映する](/part3-handson/5-roles-claims/) で、
+`alice` と `bob` の権限の違いを画面表示に反映させます。
