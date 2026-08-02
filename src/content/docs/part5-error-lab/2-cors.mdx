@@ -1,0 +1,76 @@
+---
+title: CORS エラーをわざと出して直す
+description: Web Origins の設定漏れによる CORS エラーを実際に起こし、原因の切り分け方を身につけます。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+CORS エラーは「エラーメッセージを読んでもピンとこない」代表格です。実際に自分の手で
+起こしてから直すことで、次に遭遇したときに落ち着いて対処できるようにします。
+
+## わざと起こす
+
+`demo` realm の `frontend-spa` クライアントから、**Web Origins の設定を一時的に空にして**みます。
+
+<Steps>
+1. Admin Console で **Clients → frontend-spa → Settings → Web origins** を開きます。
+2. 値（`http://localhost:5173`）を削除し、空の状態で **Save** します。
+3. SPA（`http://localhost:5173`）をログアウトしてから、もう一度アクセスしてみます。
+</Steps>
+
+:::tip[今すぐ試す]
+上記の手順で Web Origins を空にしたあと、SPA に再アクセスしてください。
+
+**期待される結果**: ログイン自体は成功しますが、その直後に画面が**真っ白（何も表示されない）**
+になります。ブラウザの開発者ツールでコンソールを開くと、次のような例外が記録されています。
+
+```
+TypeError: Failed to fetch
+    at fetchWithErrorHandling (.../keycloak-js.js:...)
+    at fetchJSON (.../keycloak-js.js:...)
+    at fetchAccessToken (.../keycloak-js.js:...)
+```
+:::
+
+## なぜ起きるのか
+
+[Part 2.3](/part2-concepts/3-auth-code-pkce/) で見た通り、認可コードをトークンに交換する
+リクエストは、**ブラウザ上の JavaScript（keycloak-js）から Keycloak のトークンエンドポイントへの
+`fetch()`** です。SPA（`localhost:5173`）から見て Keycloak（`localhost:8080`）は別オリジンなので、
+これは典型的なクロスオリジンリクエストであり、Keycloak 側が CORS ヘッダー
+（`Access-Control-Allow-Origin` など）を返さなければブラウザにブロックされます。
+
+Keycloak がどのオリジンに対して CORS ヘッダーを返すかを決めているのが、
+[Part 3.1](/part3-handson/1-realm-client-user/) で設定した **Web Origins** です。ここを
+空にしたことで、`fetch()` がブラウザ側で失敗し、`keycloak.init()` の Promise が reject され、
+`main()` の後続処理（画面描画）が実行されないまま止まってしまった、というのが今回の症状の正体です。
+
+`TypeError: Failed to fetch` というメッセージ自体には「CORS」の文字は出てきません。
+この形のエラーを見たら、まず開発者ツールの **Network タブ**で該当リクエストのステータスや
+レスポンスヘッダーを確認し、CORS が疑わしいかどうかを切り分ける習慣をつけてください。
+
+## 直し方
+
+Admin Console で Web Origins に `http://localhost:5173` を再設定して **Save** すれば直ります。
+実際に試して、画面が正しく描画されることを確認してください。
+
+## Web Origins の `+` 指定
+
+Web Origins には `+` という特殊な値を1つだけ設定できます。これは
+「**Valid Redirect URIs に登録されている URL のオリジンを、そのまま Web Origins としても
+使う**」という意味のショートカットです。redirect URI を追加・変更するたびに Web Origins も
+二重に更新する必要がなくなるため、実務では `+` を使うことも多くあります。今回のハンズオンでは
+挙動を明確にするため、あえて具体的な URL（`http://localhost:5173`）を指定しています。
+
+## プロキシ配下での「偽 CORS」に注意
+
+[Part 4.3](/part4-real-world/3-dev-vs-prod/) で触れたリバースプロキシ構成では、
+実際には Web Origins の設定ミスではなく、**プロキシが `Access-Control-Allow-Origin` などの
+CORS 関連ヘッダーを途中で落としてしまっている**だけ、というケースもあります。この場合、
+Keycloak 側の設定は正しいのにブラウザにはエラーが見えるため、原因の切り分けを誤りやすい
+ポイントです。プロキシ配下で CORS エラーに遭遇したら、Keycloak に直接（プロキシを経由せず）
+リクエストして再現するかどうかを確認すると、切り分けが早くなります。
+
+## 次へ
+
+[Part 5.3: トークン期限切れ体験](/part5-error-lab/3-token-expiry/)

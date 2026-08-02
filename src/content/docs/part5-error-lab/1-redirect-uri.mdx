@@ -1,0 +1,85 @@
+---
+title: redirect_uri 不一致をわざと出して直す
+description: Keycloak を使った開発で最も高頻度で遭遇するエラーを、実際に起こしてから直します。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+ここからは**エラー体験ラボ**です。実務で Keycloak を使い始めると必ず一度は遭遇するエラーを、
+このページでは**わざと自分で起こし**、エラーメッセージの読み方と直し方を身につけます。
+最初は、体感的にもっとも頻度が高い `redirect_uri` の不一致です。
+
+## わざと起こす
+
+ブラウザで次の URL を直接開いてみてください（SPA を経由せず、認可エンドポイントに
+直接アクセスします）。
+
+```
+http://localhost:8080/realms/demo/protocol/openid-connect/auth
+  ?client_id=frontend-spa
+  &redirect_uri=http://localhost:5174/
+  &response_type=code
+  &scope=openid
+```
+
+（`redirect_uri` を `demo` realm に登録されている `http://localhost:5173/*` とは
+**違うポート番号**にしているのがポイントです。）
+
+:::tip[今すぐ試す]
+上記の URL を1行にしてブラウザのアドレスバーに入力してください（クエリパラメータの
+改行・インデントは削除してください）。
+
+**期待される結果**: ログインフォームの代わりに、次のエラー画面が表示されます。
+
+```
+We are sorry...
+Invalid parameter: redirect_uri
+```
+:::
+
+## なぜ起きるのか
+
+[Part 3.1](/part3-handson/1-realm-client-user/) で設定した **Valid Redirect URIs**
+（`demo` realm の `frontend-spa` では `http://localhost:5173/*`）に、リクエストで
+渡された `redirect_uri` が一致しないと、Keycloak は認可コードの発行そのものを拒否します。
+これは、登録されていない URL に認可コードを送り届けてしまう（＝攻撃者のサイトに
+ログイン情報を渡してしまう）ことを防ぐための、意図された安全装置です。
+
+エラーメッセージが `Invalid parameter: redirect_uri` としか言ってくれないため、
+**「一致しない」ことは分かっても「どこが一致しないか」は自分で特定する必要があります。**
+実際に確認すると、次のいずれのパターンでも同じメッセージになります。
+
+| 原因 | 例 |
+|---|---|
+| ポート番号が違う | 登録: `:5173` / 実際: `:5174` |
+| 末尾スラッシュの有無 | 登録: `http://localhost:5173/*` / 実際: `http://localhost:5173`（スラッシュなし） |
+| ホスト名が違う | 登録: `localhost` / 実際: `127.0.0.1` |
+| スキームが違う | 登録: `http://` / 実際: `https://` |
+
+`localhost` と `127.0.0.1` はブラウザ上では同じように見えても、Keycloak にとっては
+**まったく別のオリジン**として扱われる点に注意してください。
+
+## 直し方
+
+<Steps>
+
+1. ブラウザで実際に何が起きたかを、開発者ツールの Network タブでアドレスバーの URL
+   （またはリダイレクト元のリクエスト）から確認し、送信された `redirect_uri` の値を特定します。
+
+2. Admin Console の **Clients → 該当の Client → Settings → Valid redirect URIs**
+   を開き、登録されている値と実際に使っている URL を見比べます。
+
+3. 食い違っている箇所（ポート・スラッシュ・ホスト名・スキーム）を特定し、
+   どちらか一方に合わせます。通常は、アプリ側の URL に合わせて Keycloak 側の登録を
+   修正するほうが早く済みます。
+
+</Steps>
+
+実際、今回のハンズオンで `http://localhost:5173/*` ではなく `http://localhost:5173`
+（末尾スラッシュなし・ワイルドカードなし）と登録していたら、Vite の開発サーバーが
+`http://localhost:5173/` を `redirect_uri` として送った瞬間に、このエラーで
+詰まっていたはずです。
+
+## 次へ
+
+[Part 5.2: CORS エラーをわざと出して直す](/part5-error-lab/2-cors/)
