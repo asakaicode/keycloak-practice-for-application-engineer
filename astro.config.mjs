@@ -1,10 +1,16 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import starlight from '@astrojs/starlight';
+import mermaid from 'astro-mermaid';
 
 // https://astro.build/config
 export default defineConfig({
 	integrations: [
+		// astro-mermaid must be registered before starlight.
+		mermaid({
+			theme: 'neutral',
+			autoTheme: true,
+		}),
 		starlight({
 			title: 'フロントエンドエンジニアのための Keycloak（非公式）',
 			description:
