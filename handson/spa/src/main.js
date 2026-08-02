@@ -2,7 +2,10 @@ import './style.css'
 import keycloak from './keycloak.js'
 
 async function main() {
-  const authenticated = await keycloak.init({ onLoad: 'login-required' })
+  // checkLoginIframe はデフォルト true だが、サードパーティ Cookie を
+  // ブロックするブラウザでは正しく機能しないため明示的に無効化する。
+  // 詳しくは Part 4.1 を参照。
+  const authenticated = await keycloak.init({ onLoad: 'login-required', checkLoginIframe: false })
 
   if (!authenticated) {
     renderUnauthenticated()
