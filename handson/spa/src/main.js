@@ -31,7 +31,9 @@ function renderAuthenticated() {
     </section>
   `
 
-  document.querySelector('#logout').addEventListener('click', () => keycloak.logout())
+  document.querySelector('#logout').addEventListener('click', () => {
+    keycloak.logout({ redirectUri: window.location.origin + '/' })
+  })
   document.querySelector('#refresh').addEventListener('click', () => refreshToken())
 
   renderTokenInfo()
