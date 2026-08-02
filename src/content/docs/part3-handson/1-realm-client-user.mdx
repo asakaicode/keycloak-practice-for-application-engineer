@@ -4,6 +4,7 @@ description: Admin Console を操作して、Realm・Client・User を自分の�
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
 
 Part 1 で使った `demo` realm は、あらかじめ用意しておいた JSON ファイルから自動インポートされたものでした。
 ここでは同じものを **自分の手で Admin Console から作る**ことで、それぞれの設定項目が何を意味するのかを
@@ -101,6 +102,8 @@ Client は「認証を要求するアプリケーション」でした。Part 1 
 `demo` realm の `alice` / `bob` も、内部的にはこれと同じ手順（+ 事前定義された `realmRoles`）
 で作られています。ロールの割り当ては [Part 3.5: ロールとクレームを UI に反映する](/part3-handson/5-roles-claims/)
 で扱います。
+
+<ProgressChecklist />
 
 ## 次へ
 

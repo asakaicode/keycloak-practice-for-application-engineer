@@ -1,0 +1,129 @@
+---
+---
+
+<div class="jwt-decoder not-content">
+	<label for="jwt-decoder-input">JWT を貼り付けてください（サーバーには送信されません）</label>
+	<textarea
+		id="jwt-decoder-input"
+		class="jwt-decoder__input"
+		rows="4"
+		placeholder="eyJhbGciOiJSUzI1NiIs..."
+	></textarea>
+	<div class="jwt-decoder__output">
+		<div>
+			<h4>Header</h4>
+			<pre class="jwt-decoder__header">（入力を待っています）</pre>
+		</div>
+		<div>
+			<h4>Payload</h4>
+			<pre class="jwt-decoder__payload">（入力を待っています）</pre>
+		</div>
+	</div>
+</div>
+
+<script>
+	function base64UrlDecode(segment: string): string {
+		const base64 = segment.replace(/-/g, '+').replace(/_/g, '/');
+		const padded = base64.padEnd(base64.length + ((4 - (base64.length % 4)) % 4), '=');
+		return decodeURIComponent(
+			atob(padded)
+				.split('')
+				.map((c) => '%' + c.charCodeAt(0).toString(16).padStart(2, '0'))
+				.join('')
+		);
+	}
+
+	function initJwtDecoders() {
+		document.querySelectorAll<HTMLElement>('.jwt-decoder').forEach((widget) => {
+			const input = widget.querySelector<HTMLTextAreaElement>('.jwt-decoder__input');
+			const headerEl = widget.querySelector<HTMLElement>('.jwt-decoder__header');
+			const payloadEl = widget.querySelector<HTMLElement>('.jwt-decoder__payload');
+			if (!input || !headerEl || !payloadEl || input.dataset.bound) return;
+			input.dataset.bound = 'true';
+
+			input.addEventListener('input', () => {
+				const value = input.value.trim();
+				if (!value) {
+					headerEl.textContent = '（入力を待っています）';
+					payloadEl.textContent = '（入力を待っています）';
+					return;
+				}
+
+				const parts = value.split('.');
+				if (parts.length < 2) {
+					headerEl.textContent = 'JWT の形式ではありません（"." で区切られた3パートが必要です）';
+					payloadEl.textContent = '-';
+					return;
+				}
+
+				try {
+					headerEl.textContent = JSON.stringify(JSON.parse(base64UrlDecode(parts[0])), null, 2);
+				} catch {
+					headerEl.textContent = 'デコードに失敗しました';
+				}
+
+				try {
+					payloadEl.textContent = JSON.stringify(JSON.parse(base64UrlDecode(parts[1])), null, 2);
+				} catch {
+					payloadEl.textContent = 'デコードに失敗しました';
+				}
+			});
+		});
+	}
+
+	initJwtDecoders();
+	document.addEventListener('astro:page-load', initJwtDecoders);
+</script>
+
+<style>
+	.jwt-decoder {
+		margin-block: 2rem;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+	}
+
+	.jwt-decoder label {
+		display: block;
+		font-size: var(--sl-text-body-sm);
+		margin-bottom: 0.5rem;
+	}
+
+	.jwt-decoder__input {
+		width: 100%;
+		box-sizing: border-box;
+		font-family: var(--__sl-font-mono, monospace);
+		font-size: var(--sl-text-code-sm);
+		padding: 0.5rem;
+		border-radius: 0.3rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-black);
+		color: var(--sl-color-white);
+		resize: vertical;
+	}
+
+	.jwt-decoder__output {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 1rem;
+		margin-top: 1rem;
+	}
+
+	.jwt-decoder__output h4 {
+		margin: 0 0 0.4rem;
+		font-size: var(--sl-text-body-sm);
+	}
+
+	.jwt-decoder__output pre {
+		margin: 0;
+		white-space: pre-wrap;
+		word-break: break-word;
+		font-size: var(--sl-text-code-sm);
+	}
+
+	@media (max-width: 640px) {
+		.jwt-decoder__output {
+			grid-template-columns: 1fr;
+		}
+	}
+</style>

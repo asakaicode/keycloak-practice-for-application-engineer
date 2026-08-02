@@ -4,6 +4,7 @@ description: Docker 1コマンドで Keycloak を起動し、あらかじめ用�
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
 
 この章のゴールは、**Docker で Keycloak を起動し、あとの章で使う `demo` realm がインポートされた状態にする**ことです。
 中身の説明はまだしません。まずは動かして、次のページで実際にログインしてみましょう。
@@ -81,6 +82,8 @@ Keycloak 26.7.0 on JVM (powered by Quarkus ...) started in ... Listening on: htt
 :::note
 停止するときは同じ `handson` ディレクトリで `docker compose down` を実行してください。
 :::
+
+<ProgressChecklist />
 
 ## 次へ
 

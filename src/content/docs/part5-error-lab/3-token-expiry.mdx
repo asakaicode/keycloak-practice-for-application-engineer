@@ -1,0 +1,76 @@
+---
+title: トークン期限切れ体験
+description: アクセストークンが切れた状態で API を呼ぶとどうなるかを体験し、自動リカバリを実装します。
+---
+
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
+`demo` realm のアクセストークンの有効期限は、[Part 3.3](/part3-handson/3-tokens/) で見た通り
+**300秒（5分）**です。実際に5分待つのは大変なので、ここではトークンをわざと壊すことで
+「期限切れ」と同じ状況（＝ API から見て無効なトークン）を再現します。
+
+## わざと起こす
+
+ブラウザの開発者ツールでコンソールを開き、次のコードを実行してアクセストークンを
+意図的に壊してから、SPA の「/api/protected を呼ぶ」ボタンを押してみてください。
+
+```js
+const mod = await import('/src/keycloak.js')
+mod.default.token += 'broken'
+```
+
+:::tip[今すぐ試す]
+上記を実行したあと「/api/protected を呼ぶ」ボタンを押してください。
+
+**期待される結果**: 表示が一瞬「呼び出し中...」→「トークンを更新して再試行中...」と変わり、
+最終的に `HTTP 200` の成功レスポンスが表示されます。ブラウザの Network タブを見ると、
+同じ `/api/protected` に対して **1回目 401 → 2回目 200** の2つのリクエストが記録されています。
+:::
+
+## 何が起きているか
+
+[Part 3.6](/part3-handson/6-api-protection/) で実装した API は、無効なトークンを受け取ると
+`401 Unauthorized` を返します。壊れたトークン（署名が合わないため検証に失敗する）は、
+期限切れのトークンと API から見ればまったく同じ「無効なトークン」です。
+
+`handson/spa/src/main.js` の `callApi()` には、この 401 を検知したら自動的に
+`updateToken()` を呼んでトークンを更新し、**同じリクエストを1回だけ自動的にやり直す**
+処理を実装しています。
+
+```js title="handson/spa/src/main.js"
+async function callApi(path, withToken, isRetry = false) {
+  const headers = withToken ? { Authorization: `Bearer ${keycloak.token}` } : {}
+  const res = await fetch(API_BASE_URL + path, { headers })
+
+  if (res.status === 401 && withToken && !isRetry) {
+    try {
+      await keycloak.updateToken(-1)
+      return callApi(path, withToken, true)
+    } catch {
+      // リフレッシュトークンも失効していた場合はそのまま結果を表示する
+    }
+  }
+
+  const body = await res.json()
+  // ...結果を表示...
+}
+```
+
+リフレッシュトークンさえ有効であれば、ユーザーは 401 が起きたことにまったく気づかないまま、
+裏側でトークンが更新されて処理が続行されます。**この自動リカバリこそが、実務で
+「ユーザーがしばらく操作していなかったせいで急にエラー画面が出る」体験を防ぐ実装**です。
+
+## リフレッシュトークンも失効していたら
+
+[Part 3.4](/part3-handson/4-logout-session/) で見た SSO Session Idle（30分）を超えていたり、
+リフレッシュトークン自体の有効期限（`demo` realm では 1800秒）が切れていたりすると、
+`updateToken()` 自体が失敗します。その場合の一般的な対処は、`keycloak.login()` を呼んで
+ユーザーに再ログインしてもらうことです。今回のサンプル SPA では簡略化のため、
+リカバリに失敗した場合はそのままエラーレスポンスを表示するだけにしていますが、
+実務ではここで再ログインへ誘導する UI を出す実装が必要になります。
+
+<ProgressChecklist />
+
+## 次へ
+
+[Part 5.4: その他の頻出エラー早見表](/part5-error-lab/4-common-errors/)

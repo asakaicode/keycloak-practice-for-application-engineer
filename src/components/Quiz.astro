@@ -1,0 +1,137 @@
+---
+interface QuizQuestion {
+	question: string;
+	choices: string[];
+	answerIndex: number;
+	explanation: string;
+}
+
+interface Props {
+	questions: QuizQuestion[];
+}
+
+const { questions } = Astro.props;
+const quizId = crypto.randomUUID();
+---
+
+<div class="quiz not-content" data-quiz-id={quizId}>
+	{
+		questions.map((q, qi) => (
+			<fieldset class="quiz__question" data-answer-index={q.answerIndex}>
+				<legend>
+					Q{qi + 1}. {q.question}
+				</legend>
+				<div class="quiz__choices">
+					{q.choices.map((choice, ci) => (
+						<label class="quiz__choice">
+							<input type="radio" name={`quiz-${quizId}-${qi}`} value={ci} />
+							<span>{choice}</span>
+						</label>
+					))}
+				</div>
+				<p class="quiz__explanation" hidden>
+					{q.explanation}
+				</p>
+			</fieldset>
+		))
+	}
+	<button type="button" class="quiz__submit">採点する</button>
+	<p class="quiz__score" hidden></p>
+</div>
+
+<script>
+	function initQuizzes() {
+		document.querySelectorAll<HTMLElement>('.quiz').forEach((quiz) => {
+			const submitButton = quiz.querySelector<HTMLButtonElement>('.quiz__submit');
+			const scoreEl = quiz.querySelector<HTMLElement>('.quiz__score');
+			if (!submitButton || !scoreEl || submitButton.dataset.bound) return;
+			submitButton.dataset.bound = 'true';
+
+			submitButton.addEventListener('click', () => {
+				const fieldsets = quiz.querySelectorAll<HTMLFieldSetElement>('.quiz__question');
+				let correct = 0;
+
+				fieldsets.forEach((fieldset) => {
+					const answerIndex = Number(fieldset.dataset.answerIndex);
+					const selected = fieldset.querySelector<HTMLInputElement>('input[type="radio"]:checked');
+					const explanation = fieldset.querySelector<HTMLElement>('.quiz__explanation');
+					const choices = fieldset.querySelectorAll<HTMLLabelElement>('.quiz__choice');
+
+					choices.forEach((choice, i) => {
+						choice.classList.remove('quiz__choice--correct', 'quiz__choice--incorrect');
+						if (i === answerIndex) choice.classList.add('quiz__choice--correct');
+						else if (selected && Number(selected.value) === i) choice.classList.add('quiz__choice--incorrect');
+					});
+
+					if (selected && Number(selected.value) === answerIndex) correct++;
+					if (explanation) explanation.hidden = false;
+				});
+
+				scoreEl.hidden = false;
+				scoreEl.textContent = `${correct} / ${fieldsets.length} 問正解`;
+			});
+		});
+	}
+
+	initQuizzes();
+	document.addEventListener('astro:page-load', initQuizzes);
+</script>
+
+<style>
+	.quiz {
+		margin-block: 2rem;
+		padding: 1rem 1.25rem;
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+	}
+
+	.quiz__question {
+		border: none;
+		padding: 0;
+		margin: 0 0 1.5rem;
+	}
+
+	.quiz__question legend {
+		font-weight: 600;
+		padding: 0;
+		margin-bottom: 0.5rem;
+	}
+
+	.quiz__choices {
+		display: flex;
+		flex-direction: column;
+		gap: 0.4rem;
+	}
+
+	.quiz__choice {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.3rem 0.5rem;
+		border-radius: 0.3rem;
+		cursor: pointer;
+	}
+
+	.quiz__choice--correct {
+		background: color-mix(in srgb, green 20%, transparent);
+	}
+
+	.quiz__choice--incorrect {
+		background: color-mix(in srgb, red 20%, transparent);
+	}
+
+	.quiz__explanation {
+		margin-top: 0.5rem;
+		font-size: var(--sl-text-body-sm);
+		color: var(--sl-color-gray-2);
+	}
+
+	.quiz__submit {
+		cursor: pointer;
+	}
+
+	.quiz__score {
+		margin-top: 1rem;
+		font-weight: 600;
+	}
+</style>

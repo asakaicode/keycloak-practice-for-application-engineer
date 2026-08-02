@@ -3,6 +3,8 @@ title: IdP が解決する課題
 description: なぜ各アプリが自前でログイン機能を作らず、Keycloak のような IdP に認証を任せるのかを理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Part 1 で体験した通り、サンプル SPA は自分自身ではパスワードを一切扱わず、
 「認証」という仕事を丸ごと Keycloak に渡していました。なぜそんな回りくどいことをするのでしょうか。
 まずは「自前でログイン機能を作る」ことの限界から見ていきます。
@@ -59,6 +61,8 @@ Part 1 で `alice` としてログインした状態のまま、同じ Keycloak 
 つまり、Keycloak が社内にあるのは「認証という面倒で重要な仕事を、標準に準拠した専用の
 コンポーネントに任せている」からです。次のページでは、Keycloak が実際に何のプロトコルを
 話しているのか、その全体像（メンタルモデル）を掴んでいきます。
+
+<ProgressChecklist />
 
 ## 次へ
 

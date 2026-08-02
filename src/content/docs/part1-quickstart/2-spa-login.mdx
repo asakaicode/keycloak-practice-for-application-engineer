@@ -4,6 +4,7 @@ description: 用意されたサンプル SPA を起動し、Keycloak でログ�
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
 
 Keycloak が起動したので、次はそれを使う側のアプリを動かします。ここでは中身の説明はせず、
 **「Web アプリが Keycloak に認証を任せる」体験そのもの**に集中してください。仕組みは
@@ -75,3 +76,5 @@ npm run dev
 これで「15分で動かす」は完了です。Docker で Keycloak を起動し、SPA からログインする
 一連の流れを自分の手で体験できました。ここから先は、今体験した内容を一つずつ
 遡って理解していきます。
+
+<ProgressChecklist />

@@ -1,0 +1,58 @@
+---
+title: OIDC エンドポイント早見表
+description: demo realm の主要な OIDC エンドポイントと、それぞれの役割をまとめます。
+---
+
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
+[Part 2.3](/part2-concepts/3-auth-code-pkce/) で紹介した `.well-known/openid-configuration`
+から取得できる、主要なエンドポイントの一覧です。`demo` realm での実際の値を掲載しています
+（他の realm では `/realms/demo/` の部分がその realm 名に変わります）。
+
+:::tip[今すぐ試す]
+```bash
+curl -s http://localhost:8080/realms/demo/.well-known/openid-configuration | jq
+```
+実行すると、以下の表にある値をすべて一度に確認できます。
+:::
+
+## 認証・認可フロー関連
+
+| エンドポイント | URL（`demo` realm） | 役割 | 関連ページ |
+|---|---|---|---|
+| 認可エンドポイント<br/>`authorization_endpoint` | `/realms/demo/protocol/openid-connect/auth` | ログイン画面を表示し、認可コードを発行する | [Part 2.3](/part2-concepts/3-auth-code-pkce/) |
+| トークンエンドポイント<br/>`token_endpoint` | `/realms/demo/protocol/openid-connect/token` | 認可コードをトークンに交換する。リフレッシュトークンでの更新もここ | [Part 2.3](/part2-concepts/3-auth-code-pkce/)・[Part 3.3](/part3-handson/3-tokens/) |
+| ログアウトエンドポイント<br/>`end_session_endpoint` | `/realms/demo/protocol/openid-connect/logout` | SSO セッションを終了する | [Part 3.4](/part3-handson/4-logout-session/) |
+
+## トークン情報関連
+
+| エンドポイント | URL（`demo` realm） | 役割 | 関連ページ |
+|---|---|---|---|
+| ユーザー情報エンドポイント<br/>`userinfo_endpoint` | `/realms/demo/protocol/openid-connect/userinfo` | アクセストークンを使ってユーザー情報を取得する | — |
+| 公開鍵セット<br/>`jwks_uri` | `/realms/demo/protocol/openid-connect/certs` | トークンの署名検証に使う公開鍵（JWKS）を取得する | [Part 3.6](/part3-handson/6-api-protection/) |
+| イントロスペクションエンドポイント<br/>`introspection_endpoint` | `/realms/demo/protocol/openid-connect/token/introspect` | トークンが現在も有効かをサーバーに問い合わせる（confidential client 向け） | — |
+| 失効エンドポイント<br/>`revocation_endpoint` | `/realms/demo/protocol/openid-connect/revoke` | トークンを明示的に無効化する | — |
+
+## Discovery ドキュメント自体
+
+| エンドポイント | URL（`demo` realm） | 役割 |
+|---|---|---|
+| OIDC Discovery | `/realms/demo/.well-known/openid-configuration` | 上記すべてのエンドポイント URL と、サポートする機能一覧を返す |
+
+## 使い分けの目安
+
+- **フロントエンドの SPA が直接呼ぶのは** `authorization_endpoint` と `token_endpoint`
+  （keycloak-js が内部で呼んでいます）と、ログアウト時の `end_session_endpoint` です。
+- `introspection_endpoint` と `revocation_endpoint` は、クライアントシークレットを使った
+  認証が必要な**confidential client 向け**のエンドポイントです。今回のようなパブリック
+  クライアントの SPA から直接呼ぶことは想定されていません（[Part 3.6](/part3-handson/6-api-protection/)
+  の `handson/api` のような、独自に検証を書く API サーバー側で使うことがあります）。
+- 自分のコードでこれらの URL を直接組み立てる必要はほとんどありません。keycloak-js や
+  多くの OIDC ライブラリは、Discovery ドキュメントを一度取得すれば、そこから
+  必要なエンドポイントを自動的に解決します。
+
+<ProgressChecklist />
+
+## 次へ
+
+[Part 6: 公式ドキュメントの歩き方](/part6-reference/official-docs-guide/)

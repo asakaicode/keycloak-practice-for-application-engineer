@@ -1,0 +1,82 @@
+---
+title: dev と prod の違い
+description: start-dev と start の違い、リバースプロキシ配下での hostname 設定、redirect URI のワイルドカード禁止を理解します。
+---
+
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
+このハンズオンでは一貫して `docker-compose.yml` の `start-dev` コマンドで Keycloak を
+動かしてきました。ここでは、本番環境で Keycloak を運用する際に何が変わるのかを整理します。
+実際に本番構築をするページではなく、**「dev のままでは何がまずいのか」を知っておく**ための
+ページです。
+
+## `start-dev` は本番で使ってはいけない
+
+`handson/docker-compose.yml` で使っている `start-dev` は、開発を素早く始めるための
+モードで、次のような**本番では危険な初期設定**になっています。
+
+- HTTPS が無効（HTTP のみで動く）
+- データベースが H2 インメモリ（コンテナを再作成すると消える）
+- `--hostname-strict false` がデフォルト（hostname の検証が緩い）
+
+本番環境では `start` コマンドを使い、これらを明示的に安全な設定に切り替える必要があります。
+
+## hostname の明示設定が必須になる
+
+`start-dev` では、Keycloak はリクエストの `Host` ヘッダーなどから自分自身の URL
+（[Part 2.3](/part2-concepts/3-auth-code-pkce/) で見た `issuer` など）を自動的に推測してくれます。
+だからこそ、このハンズオンでは何も設定せずに `http://localhost:8080` として動作していました。
+
+`start`（本番モード）では、この自動推測に頼らず **`--hostname` オプション（または
+`KC_HOSTNAME` 環境変数）で自分自身の外部公開 URL を明示する**ことが求められます。
+`issuer` の値がずれると、[Part 2.3](/part2-concepts/3-auth-code-pkce/) で見たトークンの
+`iss` クレームの検証がクライアント側で失敗するようになるため、これは省略できない設定です。
+
+## リバースプロキシ配下では `X-Forwarded-*` の扱いに注意する
+
+本番構成では、Keycloak の手前に TLS 終端を行うリバースプロキシ（nginx や ALB など）を
+置くのが一般的です。この構成では、ブラウザ ⇄ プロキシ間は HTTPS でも、
+プロキシ ⇄ Keycloak 間は素の HTTP になっていることがあります。
+
+このとき Keycloak がプロキシからの `X-Forwarded-Proto` / `X-Forwarded-Host` ヘッダーを
+信頼するように、明示的に **`--proxy-headers xforwarded`** を設定する必要があります。
+これを設定し忘れると、Keycloak が「自分は HTTP で動いている」と誤認識し、
+生成するリダイレクト URL やトークンの `iss` が `https://` であるべきところ `http://` に
+なってしまう、といった不整合が起こります。
+
+:::note
+以前のバージョンにあった `--proxy` オプションは Keycloak 26 で削除されており、
+`--hostname` 系の設定と `--proxy-headers` を組み合わせる方式に統一されています。
+:::
+
+## redirect URI のワイルドカードは本番で使わない
+
+`demo` realm の `frontend-spa` クライアントには、ローカル開発の利便性のために
+`http://localhost:5173/*` という**末尾ワイルドカード**を Valid Redirect URIs に
+設定していました（[Part 3.1](/part3-handson/1-realm-client-user/)）。
+
+これは開発用途では許容されますが、**本番環境では redirect URI にワイルドカードを
+一切使わないことが強く推奨されます**。特に `*` 単体（すべての URL にマッチ）を
+登録するのは重大な設定ミスで、悪意のあるページに認可コードを横流しされるリスクに
+直結します。本番では、実際に使う URL を1つずつ、ワイルドカードなしの完全一致で
+登録してください。
+
+## まとめ
+
+| 設定 | dev（`start-dev`） | prod（`start`） |
+|---|---|---|
+| コマンド | `start-dev` | `start` |
+| HTTPS | 無効（HTTP のみ） | 有効化が必須 |
+| データベース | H2 インメモリ | 永続的な DB（PostgreSQL 等） |
+| hostname | 自動推測 | `--hostname` で明示 |
+| プロキシ配下 | 想定しない | `--proxy-headers xforwarded` 等が必要 |
+| Redirect URI | ワイルドカード可 | ワイルドカード禁止・完全一致のみ |
+
+<ProgressChecklist />
+
+## 次へ
+
+現実的な課題を押さえたところで、次は実務で必ず遭遇するエラーを、あえて自分の手で
+起こしてから直す **Part 5: エラー体験ラボ** に進みます。
+
+[Part 5.1: redirect_uri 不一致を直す](/part5-error-lab/1-redirect-uri/)

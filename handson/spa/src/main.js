@@ -2,7 +2,10 @@ import './style.css'
 import keycloak from './keycloak.js'
 
 async function main() {
-  const authenticated = await keycloak.init({ onLoad: 'login-required' })
+  // checkLoginIframe はデフォルト true だが、サードパーティ Cookie を
+  // ブロックするブラウザでは正しく機能しないため明示的に無効化する。
+  // 詳しくは Part 4.1 を参照。
+  const authenticated = await keycloak.init({ onLoad: 'login-required', checkLoginIframe: false })
 
   if (!authenticated) {
     renderUnauthenticated()
@@ -14,6 +17,7 @@ async function main() {
 
 function renderAuthenticated() {
   const { preferred_username } = keycloak.tokenParsed
+  const isAdmin = keycloak.hasRealmRole('admin')
 
   document.querySelector('#app').innerHTML = `
     <section>
@@ -23,19 +27,65 @@ function renderAuthenticated() {
     </section>
 
     <section>
+      <h2>メニュー</h2>
+      <ul>
+        <li>ダッシュボード（全ユーザーに表示）</li>
+        ${isAdmin ? '<li>ユーザー管理（admin ロールを持つユーザーにのみ表示）</li>' : ''}
+      </ul>
+    </section>
+
+    <section>
       <h2>アクセストークン</h2>
       <p id="token-expiry"></p>
       <button id="refresh">トークンを更新する</button>
       <h3>ID トークンの中身</h3>
       <pre id="id-token"></pre>
     </section>
+
+    <section>
+      <h2>API を呼び出す</h2>
+      <p>handson/api（http://localhost:3000）を呼び出します。</p>
+      <button id="call-public">/api/public を呼ぶ</button>
+      <button id="call-protected">/api/protected を呼ぶ</button>
+      <button id="call-admin">/api/admin を呼ぶ</button>
+      <pre id="api-result">（まだ呼び出していません）</pre>
+    </section>
   `
 
-  document.querySelector('#logout').addEventListener('click', () => keycloak.logout())
+  document.querySelector('#logout').addEventListener('click', () => {
+    keycloak.logout({ redirectUri: window.location.origin + '/' })
+  })
   document.querySelector('#refresh').addEventListener('click', () => refreshToken())
+  document.querySelector('#call-public').addEventListener('click', () => callApi('/api/public', false))
+  document.querySelector('#call-protected').addEventListener('click', () => callApi('/api/protected', true))
+  document.querySelector('#call-admin').addEventListener('click', () => callApi('/api/admin', true))
 
   renderTokenInfo()
   setInterval(renderTokenInfo, 1000)
+}
+
+const API_BASE_URL = 'http://localhost:3000'
+
+async function callApi(path, withToken, isRetry = false) {
+  const resultEl = document.querySelector('#api-result')
+  resultEl.textContent = isRetry ? 'トークンを更新して再試行中...' : '呼び出し中...'
+
+  const headers = withToken ? { Authorization: `Bearer ${keycloak.token}` } : {}
+  const res = await fetch(API_BASE_URL + path, { headers })
+
+  // 401（トークン切れ・無効）が返ってきたら、一度だけ updateToken() で
+  // 更新してから同じリクエストを自動的にやり直す。
+  if (res.status === 401 && withToken && !isRetry) {
+    try {
+      await keycloak.updateToken(-1)
+      return callApi(path, withToken, true)
+    } catch {
+      // 更新自体が失敗した場合（リフレッシュトークンも失効済み等）はそのまま結果を表示する
+    }
+  }
+
+  const body = await res.json()
+  resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(body, null, 2)}`
 }
 
 function renderTokenInfo() {

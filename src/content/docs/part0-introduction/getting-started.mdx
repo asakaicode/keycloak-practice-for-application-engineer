@@ -1,0 +1,36 @@
+---
+title: 学習の進め方
+description: ハンズオンに必要な環境と、このサイトの読み進め方をまとめます。
+---
+
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
+## 必要な環境
+
+- **Docker / Docker Compose**: ハンズオン用の Keycloak を起動するため
+- **Node.js**: このサイトの [`.nvmrc`](https://github.com/asakaicode/keycloak-practice-for-application-engineer/blob/main/.nvmrc) で固定しているバージョン（v22 以上）。
+  サンプル SPA・保護対象 API サーバーの実行に使います
+
+いずれもリポジトリを手元にクローンして進めることを前提にしています。
+
+## 読み進め方
+
+- **Part 1〜3 は順番通りに進めてください。** 1つの SPA を章が進むごとに育てていく構成のため、
+  途中を飛ばすと後の章でコードの前提が合わなくなります
+- **Part 4〜6 は好きな順番・気になるページだけでも構いません。** それぞれ独立したトピックです
+- 各ページの :::tip[今すぐ試す] ボックスは、実際に手を動かして確認できるようになっています。
+  読むだけで終わらせず、できるだけ実際にコマンドを実行してみてください
+- ページ末尾のチェックボックスは、読み進めた記録としてブラウザの localStorage に保存されます
+  （サーバーには送信されません。ブラウザやデバイスを変えるとリセットされます）
+
+## 詰まったときは
+
+[Part 5: エラー体験ラボ](/part5-error-lab/1-redirect-uri/) に、実務でよく遭遇するエラーと
+その直し方をまとめています。ハンズオンの途中で似たようなエラーに遭遇したら、まずここを
+確認してみてください。
+
+<ProgressChecklist />
+
+## 次へ
+
+準備ができたら、[Part 1.1: Docker で Keycloak を起動する](/part1-quickstart/1-docker/) から始めましょう。

@@ -3,6 +3,8 @@ title: keycloak-js で SPA を保護する
 description: Part 1 で動かしたサンプル SPA のコードを読み、keycloak-js がどう Keycloak と連携しているのかを理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Part 1.2 で体験した「開いた瞬間にログイン画面へ飛ばされる」動きは、`handson/spa` の中にある
 2つの小さなファイルだけで実現されています。ここでは、そのコードを1行ずつ読んでいきます。
 
@@ -100,6 +102,8 @@ JavaScript オブジェクトとしてすでにデコードされて入ってい
 「認証に失敗しました」画面が一瞬表示されます（`authenticated` が `false` になるため）。
 確認できたら `'login-required'` に戻しておきましょう。
 :::
+
+<ProgressChecklist />
 
 ## 次へ
 
