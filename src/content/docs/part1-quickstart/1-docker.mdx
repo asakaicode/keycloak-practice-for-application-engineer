@@ -1,0 +1,88 @@
+---
+title: Docker で Keycloak を起動する
+description: Docker 1コマンドで Keycloak を起動し、あらかじめ用意した realm を自動インポートします。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+この章のゴールは、**Docker で Keycloak を起動し、あとの章で使う `demo` realm がインポートされた状態にする**ことです。
+中身の説明はまだしません。まずは動かして、次のページで実際にログインしてみましょう。
+
+## 前提
+
+- Docker / Docker Compose がインストールされていること
+- このリポジトリをクローンしていること
+
+:::tip[今すぐ試す]
+リポジトリの `handson` ディレクトリで、以下を実行してください。
+
+```bash
+cd handson
+docker compose up -d
+```
+
+**期待される結果**: 数秒後、以下のようなログが `docker compose logs keycloak` で確認できます。
+
+```
+Realm 'demo' imported
+KC-SERVICES0032: Import finished successfully
+Keycloak 26.7.0 on JVM (powered by Quarkus ...) started in ... Listening on: http://0.0.0.0:8080
+```
+:::
+
+## 手順
+
+<Steps>
+
+1. リポジトリの `handson` ディレクトリに移動します。
+
+   ```bash
+   cd handson
+   ```
+
+2. Keycloak をバックグラウンドで起動します。
+
+   ```bash
+   docker compose up -d
+   ```
+
+   初回はイメージのダウンロードが走るため、数分かかることがあります。
+
+3. 起動ログを確認します。
+
+   ```bash
+   docker compose logs -f keycloak
+   ```
+
+   `Realm 'demo' imported` と `KC-SERVICES0032: Import finished successfully` が出力されていれば、
+   あらかじめ用意しておいた `demo` realm（Realm・Client・テストユーザーの定義一式）が正しく読み込まれています。
+   `Ctrl+C` でログの追跡を終了できます。
+
+4. ブラウザで `http://localhost:8080` を開き、Keycloak が起動していることを確認します。
+
+</Steps>
+
+## この時点で用意されているもの
+
+`docker compose up` で起動した Keycloak には、`handson/keycloak/demo-realm.json` の内容がそのままインポートされています。
+
+| 項目 | 値 |
+|---|---|
+| Realm | `demo` |
+| Client | `frontend-spa`（パブリッククライアント、Authorization Code Flow + PKCE） |
+| テストユーザー | `alice` / `alice-password`（role: `user`） |
+| テストユーザー | `bob` / `bob-password`（role: `user`, `admin`） |
+| Admin Console | `admin` / `admin`（`http://localhost:8080` からログイン） |
+
+それぞれが何を意味するかは、[Part 2](/part2-concepts/1-idp/) と
+[Part 3.1](/part3-handson/1-realm-client-user/) で詳しく説明します。
+今はまだ「こういうものが用意されている」と知っておくだけで十分です。
+
+:::note
+停止するときは同じ `handson` ディレクトリで `docker compose down` を実行してください。
+:::
+
+## 次へ
+
+[Part 1.2: サンプル SPA でログインしてみる](/part1-quickstart/2-spa-login/) で、
+この Keycloak を使って実際にログインを体験します。

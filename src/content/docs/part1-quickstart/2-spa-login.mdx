@@ -1,0 +1,77 @@
+---
+title: サンプル SPA でログインしてみる
+description: 用意されたサンプル SPA を起動し、Keycloak でログインする成功体験をします。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+Keycloak が起動したので、次はそれを使う側のアプリを動かします。ここでは中身の説明はせず、
+**「Web アプリが Keycloak に認証を任せる」体験そのもの**に集中してください。仕組みは
+[Part 2](/part2-concepts/1-idp/) 以降で遡って説明します。
+
+:::tip[今すぐ試す]
+`handson/spa` ディレクトリで、以下を実行してください（Part 1.1 で Keycloak を起動したままにしておいてください）。
+
+```bash
+cd handson/spa
+npm install
+npm run dev
+```
+
+**期待される結果**: ブラウザで `http://localhost:5173` を開くと Keycloak のログイン画面に
+リダイレクトされます。`alice` / `alice-password` でログインすると、SPA に「ログイン成功」と
+表示されます。
+:::
+
+## 手順
+
+<Steps>
+
+1. `handson/spa` ディレクトリで依存パッケージをインストールします。
+
+   ```bash
+   cd handson/spa
+   npm install
+   ```
+
+2. 開発サーバーを起動します。
+
+   ```bash
+   npm run dev
+   ```
+
+3. ブラウザで `http://localhost:5173` を開きます。SPA を開いた瞬間に、
+   `http://localhost:8080/realms/demo/...` の Keycloak ログイン画面へ自動的に
+   リダイレクトされます。
+
+4. テストユーザーでログインします。
+
+   | ユーザー名 | パスワード |
+   |---|---|
+   | `alice` | `alice-password` |
+
+5. ログインに成功すると SPA に戻り、「ログイン成功」と `ようこそ、alice さん。` が表示されます。
+
+6. 「ログアウト」ボタンを押すと Keycloak 側のセッションも終了し、
+   再度ページを開くとログイン画面が表示されることを確認してください。
+
+</Steps>
+
+## 今、何が起きていたか（先取り）
+
+ボタンをクリックした記憶がないのにログイン画面に飛ばされたのは、このサンプル SPA が起動時に
+「まだログインしていなければ、今すぐ Keycloak のログイン画面へ移動する」という設定
+（`onLoad: 'login-required'`）で作られているためです。ブラウザのアドレスバーを見ると、
+`localhost:8080` という **別オリジン**（Keycloak）にいったん移動していたことが分かるはずです。
+
+この「アプリ自身はパスワードを一切扱わず、認証を専用のサーバー（Keycloak）に丸投げする」
+という考え方こそが、このサイト全体を通じて理解していく OAuth 2.0 / OIDC の核心です。
+詳しい仕組みは [Part 2: 何が起きていたのか](/part2-concepts/1-idp/) で、
+このログイン処理のコード自体は [Part 3.2: keycloak-js で SPA を保護する](/part3-handson/2-keycloak-js/)
+で解説します。
+
+## お疲れさまでした
+
+これで「15分で動かす」は完了です。Docker で Keycloak を起動し、SPA からログインする
+一連の流れを自分の手で体験できました。ここから先は、今体験した内容を一つずつ
+遡って理解していきます。
