@@ -1,0 +1,77 @@
+---
+title: クイズまとめ
+description: Part 1〜5 の内容を横断した腕試しクイズです。
+---
+
+import Quiz from '../../../components/Quiz.astro';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
+Part 1〜5 で扱った内容を横断した、全10問のクイズです。答え合わせをしながら、
+理解が曖昧なところがあれば該当ページに戻って読み返してみてください。
+
+<Quiz
+  questions={[
+    {
+      question: 'Keycloak を起動する `docker-compose.yml` で使っているコマンドは何ですか？',
+      choices: ['start', 'start-dev', 'run'],
+      answerIndex: 1,
+      explanation: 'ローカル学習用には start-dev を使います。本番では start を使い、hostname 等を明示的に設定します（Part 4.3）。',
+    },
+    {
+      question: 'SPA を開いた瞬間に Keycloak のログイン画面へ自動的にリダイレクトされたのは、どの設定によるものですか？',
+      choices: ["keycloak.init({ onLoad: 'login-required' })", 'redirectUri の設定', 'PKCE の設定'],
+      answerIndex: 0,
+      explanation: "onLoad: 'login-required' が、未ログイン時に即座にログイン画面へ移動する設定です（Part 1.2・3.2）。",
+    },
+    {
+      question: 'OAuth 2.0 と OpenID Connect（OIDC）の役割の違いとして正しいものはどれですか？',
+      choices: ['OAuth 2.0 が認証、OIDC が認可', 'OAuth 2.0 が認可、OIDC が認証', '両方とも認証だけを扱う'],
+      answerIndex: 1,
+      explanation: 'OAuth 2.0 はリソースへのアクセス委任（認可）、OIDC はその上に「誰がログインしたか」を伝える層（認証）を足したものです（Part 2.2）。',
+    },
+    {
+      question: 'PKCE が必要になるのは、どのようなクライアントですか？',
+      choices: ['クライアントシークレットを安全に保持できないパブリッククライアント', 'confidential client のみ', 'サーバーサイドのバックエンドのみ'],
+      answerIndex: 0,
+      explanation: 'ブラウザ上で動く SPA のようなパブリッククライアントは、シークレットを安全に保持できないため PKCE で認可コードの横取りを防ぎます（Part 2.3）。',
+    },
+    {
+      question: 'Keycloak の Realm role と Client role の違いは何ですか？',
+      choices: ['Realm role は realm 全体で共通、Client role は特定の Client に閉じたロール', '見た目が違うだけで機能は同じ', 'Client role のほうが強い権限を持つ'],
+      answerIndex: 0,
+      explanation: 'realm role は複数のアプリで共通の権限、client role は個々のアプリ固有の権限を表すのに使います（Part 3.5）。',
+    },
+    {
+      question: 'フロントエンドで `hasRealmRole()` を使ってメニューを出し分けるだけでは不十分な理由は何ですか？',
+      choices: ['動作が遅いから', '見た目の制御にすぎず、サーバー側でトークンを検証しないと本当の権限チェックにならないから', 'Keycloak が非推奨にしているから'],
+      answerIndex: 1,
+      explanation: '本当の権限チェックは API 側でアクセストークンを検証して行う必要があります（Part 3.5・3.6）。',
+    },
+    {
+      question: 'アクセストークンにデフォルトで含まれておらず、API 側の検証のために Audience mapper を追加する必要があったクレームは何ですか？',
+      choices: ['exp', 'aud', 'sub'],
+      answerIndex: 1,
+      explanation: 'Keycloak のアクセストークンにはデフォルトで aud クレームが入らないため、Audience mapper で明示的に追加する必要があります（Part 3.6）。',
+    },
+    {
+      question: 'サードパーティ Cookie がブロックされると壊れる keycloak-js の機能はどれですか？',
+      choices: ['updateToken()', 'checkLoginIframe（および check-sso の裏側にある silent SSO チェック）', 'logout()'],
+      answerIndex: 1,
+      explanation: '隠し iframe 経由でセッション状態を確認するこれらの機能は、サードパーティ Cookie の制限を受けます（Part 4.1）。',
+    },
+    {
+      question: 'BFF（Backend for Frontend）パターンでは、ブラウザに何が渡されますか？',
+      choices: ['アクセストークンとリフレッシュトークン', 'HttpOnly なセッション Cookie のみ', 'クライアントシークレット'],
+      answerIndex: 1,
+      explanation: 'BFF がトークンをサーバー側で管理し、ブラウザにはセッション Cookie だけが渡されます（Part 4.2）。',
+    },
+    {
+      question: '`Invalid parameter: redirect_uri` エラーが出たときにまず確認すべきことは何ですか？',
+      choices: ['Keycloak を再起動する', '実際に送信された redirect_uri と、Valid Redirect URIs に登録されている値を見比べる', 'ブラウザのキャッシュを消す'],
+      answerIndex: 1,
+      explanation: 'ポート・末尾スラッシュ・ホスト名・スキームのいずれかの食い違いが原因であることがほとんどです（Part 5.1）。',
+    },
+  ]}
+/>
+
+<ProgressChecklist label="全章の腕試しクイズに取り組んだ" />
