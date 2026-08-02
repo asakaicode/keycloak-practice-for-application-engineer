@@ -110,16 +110,16 @@ Apache 2.0 は商標の使用権を付与しない（第6条）ため、**Keyclo
 
 **目的**: 執筆を始められる状態のリポジトリを作る。
 
-- [ ] Node.js v22+ 確認、`npm create astro@latest -- --template starlight` で雛形作成
-- [ ] 日本語ルートロケール設定（`locales.root = { label: '日本語', lang: 'ja' }`）
-- [ ] Mermaid プラグイン導入と描画確認
-- [ ] サイドバー構成の骨格（第4章のカリキュラムどおりのセクション）を空ページで作る
-- [ ] ハンズオン用アセットの器を作る:
+- [x] Node.js v22+ 確認、`npm create astro@latest -- --template starlight` で雛形作成
+- [x] 日本語ルートロケール設定（`locales.root = { label: '日本語', lang: 'ja' }`）
+- [x] Mermaid プラグイン導入と描画確認
+- [x] サイドバー構成の骨格（第4章のカリキュラムどおりのセクション）を空ページで作る
+- [x] ハンズオン用アセットの器を作る:
   - `handson/docker-compose.yml`（Keycloak 26.x `start-dev` + `--import-realm`、ポート8080、127.0.0.1 バインド）
   - `handson/keycloak/demo-realm.json`（realm / client / テストユーザー定義済み）
   - `handson/spa/`（Vite 製の最小サンプル SPA。keycloak-js を後の章で組み込む）
-- [ ] `starlight-links-validator` 導入（リンク切れをビルド時に検出）
-- [ ] README.md（プロジェクト概要・ローカル起動手順）
+- [x] `starlight-links-validator` 導入（リンク切れをビルド時に検出）
+- [x] README.md（プロジェクト概要・ローカル起動手順）
 
 **完了条件**: `npm run dev` でサイトが表示され、`docker compose up` で Keycloak が起動し
 demo realm がインポートされる。

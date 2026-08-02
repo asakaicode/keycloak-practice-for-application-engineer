@@ -1,0 +1,42 @@
+---
+title: フロントエンドエンジニアのための Keycloak（非公式）
+description: Keycloak 公式ドキュメントをもとにした、フロントエンド / アプリケーションエンジニア向けの日本語ハンズオン学習サイト。
+template: splash
+hero:
+  tagline: 15分で動かして、あとから理解する。Docker で Keycloak を起動し、サンプル SPA でログインするところから始めるハンズオン学習サイトです。
+  image:
+    file: ../../assets/houston.webp
+  actions:
+    - text: このサイトについて
+      link: /part0-introduction/about/
+      icon: right-arrow
+    - text: まず15分で動かす
+      link: /part1-quickstart/1-docker/
+      icon: rocket
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## このサイトで学べること
+
+<CardGrid stagger>
+	<Card title="まず動かす" icon="rocket">
+		Docker 1コマンドで Keycloak を起動し、用意済みの SPA でログインを成功させます。
+	</Card>
+	<Card title="あとから理解する" icon="open-book">
+		成功体験のあとに OAuth 2.0 / OIDC の理論を遡って学びます。
+	</Card>
+	<Card title="1つの SPA を育てる" icon="add-document">
+		ログイン → トークン → 権限別 UI → API 保護と、章が進むごとにサンプルを育てます。
+	</Card>
+	<Card title="エラーをわざと起こして直す" icon="warning">
+		redirect_uri 不一致や CORS など、実務で必ず踏むエラーを体験してから直します。
+	</Card>
+</CardGrid>
+
+:::caution[非公式サイトです]
+本サイトは Keycloak プロジェクト / CNCF の公式・公認ではありません。Keycloak のドキュメントは
+[Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) で提供されており、
+本サイトはこれを翻訳・要約・再構成したものを含みます。
+:::
