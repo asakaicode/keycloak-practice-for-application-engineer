@@ -1,8 +1,69 @@
 ---
 title: 用語集
-description: 執筆準備中のページです。
+description: このサイトで登場した用語の英日対訳と、Admin Console のどこに対応するかをまとめます。
 ---
 
-:::caution[執筆中]
-このページはサイドバー構成の骨格として作成されたプレースホルダーです。内容は後続フェーズで執筆します。
-:::
+このサイトで登場した用語を、Admin Console 上での場所（該当する場合）とあわせてまとめます。
+英語表記は Admin Console の表示に合わせています。
+
+## Keycloak の管理単位
+
+| 英語 | 日本語 | Admin Console での場所 | 関連ページ |
+|---|---|---|---|
+| Realm | レルム | 左サイドバー上部 → Manage realms | [Part 2.2](/part2-concepts/2-oauth-oidc/)・[Part 3.1](/part3-handson/1-realm-client-user/) |
+| Client | クライアント | Clients | [Part 3.1](/part3-handson/1-realm-client-user/) |
+| User | ユーザー | Users | [Part 3.1](/part3-handson/1-realm-client-user/) |
+| Realm role | レルムロール | Realm roles / Users → Role mapping | [Part 3.5](/part3-handson/5-roles-claims/) |
+| Client role | クライアントロール | Clients → 該当 Client → Roles | [Part 3.5](/part3-handson/5-roles-claims/) |
+| Client scope | クライアントスコープ | Client scopes | [Part 3.6](/part3-handson/6-api-protection/) |
+| Protocol mapper | プロトコルマッパー | Clients → 該当 Client → Client scopes → xxx-dedicated → Mappers | [Part 3.6](/part3-handson/6-api-protection/) |
+
+## OAuth 2.0 / OIDC の登場人物・概念
+
+| 英語 | 日本語 | 補足 | 関連ページ |
+|---|---|---|---|
+| Resource Owner | リソースオーナー | 多くの場合ユーザー本人。Keycloak の User に対応 | [Part 2.2](/part2-concepts/2-oauth-oidc/) |
+| Client（OAuth の意味） | クライアント | リソースへのアクセスを要求するアプリ | [Part 2.2](/part2-concepts/2-oauth-oidc/) |
+| Authorization Server | 認可サーバー | Keycloak 自身 | [Part 2.2](/part2-concepts/2-oauth-oidc/) |
+| Resource Server | リソースサーバー | 保護対象の API（[Part 3.6](/part3-handson/6-api-protection/) の `handson/api`） | [Part 2.2](/part2-concepts/2-oauth-oidc/) |
+| Authorization Code Flow | 認可コードフロー | もっとも標準的なログインフロー | [Part 2.3](/part2-concepts/3-auth-code-pkce/) |
+| PKCE | ピクシー（Proof Key for Code Exchange） | パブリッククライアントの認可コード横取り対策 | [Part 2.3](/part2-concepts/3-auth-code-pkce/) |
+| code_verifier / code_challenge | コードベリファイア / コードチャレンジ | PKCE で使う一時的な値のペア | [Part 2.3](/part2-concepts/3-auth-code-pkce/) |
+| Public client | パブリッククライアント | クライアントシークレットを持たない（持てない）Client | [Part 2.3](/part2-concepts/3-auth-code-pkce/)・[Part 3.1](/part3-handson/1-realm-client-user/) |
+| Confidential client | コンフィデンシャルクライアント | シークレットを安全に保持できるサーバーサイドの Client | [Part 4.2](/part4-real-world/2-bff-pattern/) |
+| Direct Access Grants（ROPC） | 〃 | ユーザー名・パスワードを直接クライアントに渡す方式。非推奨 | [Part 2.3](/part2-concepts/3-auth-code-pkce/) |
+| SSO（Single Sign-On） | シングルサインオン | 一度のログインで複数アプリを横断できる仕組み | [Part 2.1](/part2-concepts/1-idp/) |
+
+## トークン関連
+
+| 英語 | 日本語 | 補足 | 関連ページ |
+|---|---|---|---|
+| ID Token | ID トークン | 「誰がログインしたか」を伝える（OIDC） | [Part 3.3](/part3-handson/3-tokens/) |
+| Access Token | アクセストークン | API 呼び出しの許可を示す（OAuth 2.0） | [Part 3.3](/part3-handson/3-tokens/) |
+| Refresh Token | リフレッシュトークン | アクセストークンを再取得するためのトークン | [Part 3.3](/part3-handson/3-tokens/) |
+| Bearer token | ベアラートークン | `Authorization: Bearer <token>` の形で提示するトークン | [Part 3.6](/part3-handson/6-api-protection/) |
+| JWT（JSON Web Token） | 〃 | Keycloak のトークンが使っているフォーマット | [Part 3.3](/part3-handson/3-tokens/) |
+| JWKS | JSON Web Key Set | トークンの署名検証に使う公開鍵の集合 | [Part 3.6](/part3-handson/6-api-protection/) |
+| `iss`（issuer） | 発行者 | トークンを発行した realm の URL | [Part 2.3](/part2-concepts/3-auth-code-pkce/) |
+| `aud`（audience） | 対象者 | トークンの想定される受け取り手 | [Part 3.6](/part3-handson/6-api-protection/) |
+| `sub`（subject） | 主体 | ユーザーを一意に識別する ID | [Part 3.3](/part3-handson/3-tokens/) |
+
+## クライアント設定
+
+| 英語 | 日本語 | 補足 | 関連ページ |
+|---|---|---|---|
+| Valid redirect URIs | 有効なリダイレクト URI | 認可コードの送り先として許可する URL | [Part 3.1](/part3-handson/1-realm-client-user/)・[Part 5.1](/part5-error-lab/1-redirect-uri/) |
+| Valid post logout redirect URIs | 有効なログアウト後リダイレクト URI | ログアウト後に戻ってよい URL | [Part 3.4](/part3-handson/4-logout-session/) |
+| Web origins | Web オリジン | Keycloak が CORS を許可するブラウザのオリジン | [Part 3.1](/part3-handson/1-realm-client-user/)・[Part 5.2](/part5-error-lab/2-cors/) |
+| SSO Session Idle / Max | SSO セッションのアイドル / 最大タイムアウト | Realm settings → Sessions | [Part 3.4](/part3-handson/4-logout-session/) |
+
+## その他
+
+| 英語 | 日本語 | 補足 | 関連ページ |
+|---|---|---|---|
+| BFF（Backend for Frontend） | 〃 | トークンをブラウザに置かないアーキテクチャパターン | [Part 4.2](/part4-real-world/2-bff-pattern/) |
+| CORS | オリジン間リソース共有 | 異なるオリジン間の通信をブラウザが制御する仕組み | [Part 3.6](/part3-handson/6-api-protection/)・[Part 5.2](/part5-error-lab/2-cors/) |
+
+## 次へ
+
+[Part 6: OIDC エンドポイント早見表](/part6-reference/endpoints/)
