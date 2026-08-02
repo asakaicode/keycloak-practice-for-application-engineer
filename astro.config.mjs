@@ -6,6 +6,7 @@ import starlightLinksValidator from 'starlight-links-validator';
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://keycloak-for-frontend.dev',
 	integrations: [
 		// astro-mermaid must be registered before starlight.
 		mermaid({
@@ -32,6 +33,16 @@ export default defineConfig({
 			components: {
 				Footer: './src/components/SiteFooter.astro',
 			},
+			head: [
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image', content: 'https://keycloak-for-frontend.dev/houston-og.webp' },
+				},
+				{
+					tag: 'meta',
+					attrs: { name: 'twitter:card', content: 'summary_large_image' },
+				},
+			],
 			plugins: [starlightLinksValidator()],
 			sidebar: [
 				{
