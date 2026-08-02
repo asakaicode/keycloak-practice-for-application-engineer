@@ -1,8 +1,127 @@
 ---
 title: トークン深掘り
-description: 執筆準備中のページです。
+description: ログイン後に手に入る3種類のトークンの違いと中身、有効期限の更新、安全な保持方法を理解します。
 ---
 
-:::caution[執筆中]
-このページはサイドバー構成の骨格として作成されたプレースホルダーです。内容は後続フェーズで執筆します。
+Part 3.2 でログインすると、SPA は Keycloak から**3種類のトークン**を受け取っていました。
+ここではそれぞれの違いと中身、そして「トークンをどこに保存するべきか」を掘り下げます。
+
+## 3種類のトークンの違い
+
+`keycloak.tokenParsed` / `keycloak.idTokenParsed` / `keycloak.refreshTokenParsed` の
+`typ`（トークンタイプ）クレームを見ると、それぞれ役割が異なることが分かります。
+
+| トークン | `typ` の値 | 何に使うか |
+|---|---|---|
+| ID トークン | `ID` | 「誰がログインしたか」を SPA に伝える（OIDC の役割） |
+| アクセストークン | `Bearer` | API へのリクエストに添えて「このリクエストは許可されている」ことを示す（OAuth 2.0 の役割） |
+| リフレッシュトークン | `Refresh` | アクセストークンの有効期限が切れたときに、再ログインなしで新しいトークンと交換するために使う |
+
+3つとも JWT（JSON Web Token）という形式で、`.` で区切られた3つの Base64 文字列
+（ヘッダー・ペイロード・署名）から成ります。keycloak-js はこれをすでにデコードして
+`tokenParsed` などのプロパティに格納してくれているため、自分で `atob()` する必要はありません。
+
+## ID トークンの中身を見る
+
+Part 3.2 で追加した「ID トークンの中身」パネルには、実際に次のようなクレームが表示されます
+（値は実行のたびに変わります）。
+
+```json
+{
+  "exp": 1785665144,
+  "iat": 1785664844,
+  "auth_time": 1785664833,
+  "iss": "http://localhost:8080/realms/demo",
+  "aud": "frontend-spa",
+  "sub": "fc315de9-59bb-4e7b-b1b9-a1c4d91bc93b",
+  "typ": "ID",
+  "azp": "frontend-spa",
+  "sid": "lsm62qtUtgmyEpLjGLCNGLAN",
+  "email_verified": true,
+  "name": "Alice Learner",
+  "preferred_username": "alice"
+}
+```
+
+主要なクレームの意味:
+
+- `exp` / `iat`: 有効期限 / 発行時刻（UNIX 時間、秒）
+- `iss`: 発行者（この realm の URL。トークンを検証する側はここが期待通りかを確認する）
+- `aud`: このトークンの対象クライアント
+- `sub`: ユーザーを一意に識別する ID（`alice` というユーザー名自体は変わりうるが `sub` は不変）
+- `preferred_username` / `name` / `email_verified`: [Part 3.1](/part3-handson/1-realm-client-user/)
+  で入力したユーザー情報がそのままクレームとして出てくる
+
+アクセストークンには、これに加えて `scope`（`openid profile email` など要求したスコープ）や
+`realm_access.roles`（`["user"]` のような、割り当てられた realm role の一覧）が含まれます。
+ロールがどうクレームに反映されるかは [Part 3.5](/part3-handson/5-roles-claims/) で扱います。
+
+## 有効期限と `updateToken()`
+
+`demo` realm ではアクセストークンの有効期限（`accessTokenLifespan`）を **300秒（5分）**に
+設定しています。実務ではこの短い有効期限を、リフレッシュトークンを使った自動更新で
+補うのが基本パターンです。
+
+```js title="src/main.js"
+async function refreshToken() {
+  try {
+    const refreshed = await keycloak.updateToken(-1)
+    console.log(refreshed ? 'トークンを更新しました' : 'まだ有効期限内のため更新不要でした')
+  } catch {
+    console.log('トークンの更新に失敗しました。再ログインが必要です')
+  }
+  renderTokenInfo()
+}
+```
+
+`updateToken(minValidity)` は「有効期限まで `minValidity` 秒を切っていたら更新する」という
+関数です。`-1` を渡すと「残り時間に関わらず必ず更新する」という意味になり、今回はボタンの
+動作を分かりやすくするためにこの値を使っています。実際のアプリでは、API を呼び出す直前に
+`updateToken(30)` のように**余裕を持った秒数**を渡し、「もうすぐ切れるなら先に更新してから使う」
+という使い方をするのが一般的です。
+
+:::tip[今すぐ試す]
+Part 3.2 で SPA にログインした状態で、「トークンを更新する」ボタンを押してみてください。
+
+**期待される結果**: 有効期限の表示が数秒先に更新され、ID トークンの `exp` / `iat` / `jti`
+の値が変わります。ブラウザの開発者ツールの Network タブで確認すると、ボタンを押した瞬間に
+`POST /realms/demo/protocol/openid-connect/token`（`grant_type=refresh_token`）が
+発行されているのが見えます。
 :::
+
+## トークンはどこに保存されているか
+
+ここが実務で特に重要なポイントです。ブラウザの開発者ツールで `localStorage` /
+`sessionStorage` の中身を確認してみると、**アクセストークン・ID トークン・リフレッシュトークンの
+どれも保存されていません**。
+
+```js
+JSON.stringify({ localStorage: { ...localStorage }, sessionStorage: { ...sessionStorage } })
+```
+
+これを実行すると、`kc-callback-...` という名前のエントリが `localStorage` に見つかります。
+これはトークンそのものではなく、ログインのリダイレクト往復中に必要な `state` / `nonce` /
+`pkceCodeVerifier`（[Part 2.3](/part2-concepts/3-auth-code-pkce/) で見たものです）を
+一時的に保持しているだけで、有効期限（`expires`）付きで自動的に不要になります。
+
+トークン本体（`keycloak.token` / `keycloak.idToken` / `keycloak.refreshToken`）は、
+**`keycloak` オブジェクトのプロパティとして JavaScript のメモリ上にだけ**存在しています。
+これは keycloak-js の設計上の原則で、次のような利点があります。
+
+- ページを再読み込みすると、メモリ上のトークンは消える（`onLoad` の設定に従って
+  再ログインするか、`check-sso` でセッションを確認し直すことになる）
+- XSS 攻撃で任意の JavaScript が実行されたとしても、`localStorage` を漁るだけでは
+  トークンを盗み出せない（メモリ上の変数への直接アクセスが必要になり、攻撃の難易度が上がる）
+
+:::caution
+これは「XSS が無害になる」という意味ではありません。実行中の JavaScript がある以上、
+メモリ上の値も理論上は読み取られえます。あくまで「保存場所を減らすことで、被害の起点を
+減らす」という多層防御の一つです。トークンを `localStorage` に自分で保存するコードを
+書かないことが、この原則を守るために私たちができる最も簡単な対策です。
+:::
+
+## 次へ
+
+トークンの中身と更新の仕組みが分かったところで、次はログアウトとセッションの終わり方を見ていきます。
+
+[Part 3.4: ログアウトとセッション](/part3-handson/4-logout-session/)
