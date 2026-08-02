@@ -20,7 +20,7 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 
 ## このサイトで学べること
 
-<CardGrid stagger>
+<CardGrid>
 	<Card title="まず動かす" icon="rocket">
 		Docker 1コマンドで Keycloak を起動し、用意済みの SPA でログインを成功させます。
 	</Card>
@@ -35,8 +35,12 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 	</Card>
 </CardGrid>
 
+<div style="margin-top: 3rem;">
+
 :::caution[非公式サイトです]
 本サイトは Keycloak プロジェクト / CNCF の公式・公認ではありません。Keycloak のドキュメントは
 [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0) で提供されており、
 本サイトはこれを翻訳・要約・再構成したものを含みます。
 :::
+
+</div>
