@@ -1,0 +1,8 @@
+---
+title: Authorization Code Flow + PKCE を図で追う
+description: 執筆準備中のページです。
+---
+
+:::caution[執筆中]
+このページはサイドバー構成の骨格として作成されたプレースホルダーです。内容は後続フェーズで執筆します。
+:::
