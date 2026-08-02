@@ -4,6 +4,8 @@ description: ログイン後に手に入る3種類のトークンの違いと中
 ---
 
 import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+import JwtDecoder from '../../../components/JwtDecoder.astro';
+import Quiz from '../../../components/Quiz.astro';
 
 Part 3.2 でログインすると、SPA は Keycloak から**3種類のトークン**を受け取っていました。
 ここではそれぞれの違いと中身、そして「トークンをどこに保存するべきか」を掘り下げます。
@@ -22,6 +24,15 @@ Part 3.2 でログインすると、SPA は Keycloak から**3種類のトーク
 3つとも JWT（JSON Web Token）という形式で、`.` で区切られた3つの Base64 文字列
 （ヘッダー・ペイロード・署名）から成ります。keycloak-js はこれをすでにデコードして
 `tokenParsed` などのプロパティに格納してくれているため、自分で `atob()` する必要はありません。
+
+## JWT をその場でデコードしてみる
+
+下のボックスに、SPA の画面に表示されている ID トークン（`eyJ...` から始まる長い文字列）や
+[jwt.io](https://jwt.io) のサンプルトークンなどを貼り付けてみてください。ヘッダーと
+ペイロードをその場でデコードして表示します（**署名の検証は行わず、入力もサーバーには
+送信されません**）。
+
+<JwtDecoder />
 
 ## ID トークンの中身を見る
 
@@ -121,6 +132,31 @@ JSON.stringify({ localStorage: { ...localStorage }, sessionStorage: { ...session
 減らす」という多層防御の一つです。トークンを `localStorage` に自分で保存するコードを
 書かないことが、この原則を守るために私たちができる最も簡単な対策です。
 :::
+
+## 腕試し
+
+<Quiz
+  questions={[
+    {
+      question: 'ID トークン・アクセストークン・リフレッシュトークンを見分けるには、どのクレームを見ればよいですか？',
+      choices: ['exp', 'typ', 'sub'],
+      answerIndex: 1,
+      explanation: '`typ` クレームがそれぞれ ID / Bearer / Refresh になっています。',
+    },
+    {
+      question: 'keycloak-js はトークンをどこに保存しますか？',
+      choices: ['localStorage', 'sessionStorage', 'JavaScript のメモリ上（keycloak オブジェクトのプロパティ）'],
+      answerIndex: 2,
+      explanation: 'トークン本体はメモリ上にのみ存在し、ページを再読み込みすると消えます。',
+    },
+    {
+      question: '`updateToken(-1)` を呼ぶとどうなりますか？',
+      choices: ['残り時間に関わらず必ずトークンを更新する', '有効期限が切れるまで何もしない', 'ログアウトする'],
+      answerIndex: 0,
+      explanation: '`-1` は「残り時間に関わらず必ず更新する」という意味の特別な値です。',
+    },
+  ]}
+/>
 
 <ProgressChecklist />
 
