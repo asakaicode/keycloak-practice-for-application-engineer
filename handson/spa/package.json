@@ -10,5 +10,8 @@
   },
   "devDependencies": {
     "vite": "^8.2.0"
+  },
+  "dependencies": {
+    "keycloak-js": "^26.2.4"
   }
 }
