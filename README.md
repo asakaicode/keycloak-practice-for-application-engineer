@@ -24,7 +24,8 @@ Keycloak 公式ドキュメントをもとにした、フロントエンド / �
 
 ## 必要な環境
 
-- Node.js v22 以上
+- Node.js v22 以上（推奨バージョンは [`.nvmrc`](./.nvmrc) / [`.node-version`](./.node-version) を参照。
+  nvm 利用時は `nvm use` で切り替えられる）
 - Docker / Docker Compose（ハンズオン用の Keycloak を起動するため）
 
 ## ローカルでの起動手順
