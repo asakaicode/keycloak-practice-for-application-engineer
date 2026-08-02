@@ -38,15 +38,40 @@ function renderAuthenticated() {
       <h3>ID トークンの中身</h3>
       <pre id="id-token"></pre>
     </section>
+
+    <section>
+      <h2>API を呼び出す</h2>
+      <p>handson/api（http://localhost:3000）を呼び出します。</p>
+      <button id="call-public">/api/public を呼ぶ</button>
+      <button id="call-protected">/api/protected を呼ぶ</button>
+      <button id="call-admin">/api/admin を呼ぶ</button>
+      <pre id="api-result">（まだ呼び出していません）</pre>
+    </section>
   `
 
   document.querySelector('#logout').addEventListener('click', () => {
     keycloak.logout({ redirectUri: window.location.origin + '/' })
   })
   document.querySelector('#refresh').addEventListener('click', () => refreshToken())
+  document.querySelector('#call-public').addEventListener('click', () => callApi('/api/public', false))
+  document.querySelector('#call-protected').addEventListener('click', () => callApi('/api/protected', true))
+  document.querySelector('#call-admin').addEventListener('click', () => callApi('/api/admin', true))
 
   renderTokenInfo()
   setInterval(renderTokenInfo, 1000)
+}
+
+const API_BASE_URL = 'http://localhost:3000'
+
+async function callApi(path, withToken) {
+  const resultEl = document.querySelector('#api-result')
+  resultEl.textContent = '呼び出し中...'
+
+  const headers = withToken ? { Authorization: `Bearer ${keycloak.token}` } : {}
+  const res = await fetch(API_BASE_URL + path, { headers })
+  const body = await res.json()
+
+  resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(body, null, 2)}`
 }
 
 function renderTokenInfo() {
