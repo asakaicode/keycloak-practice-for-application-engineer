@@ -29,6 +29,9 @@ export default defineConfig({
 					href: 'https://github.com/asakaicode/keycloak-practice-for-application-engineer',
 				},
 			],
+			components: {
+				Footer: './src/components/SiteFooter.astro',
+			},
 			plugins: [starlightLinksValidator()],
 			sidebar: [
 				{
