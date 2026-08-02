@@ -1,0 +1,145 @@
+---
+title: API を保護する
+description: SPA から Bearer トークンで API を呼び出し、サーバー側でトークンを検証する仕組みと CORS の正しい理解を身につけます。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+[Part 3.5](/part3-handson/5-roles-claims/) の最後で触れた通り、フロントエンドでのロール分岐は
+見た目の制御にすぎません。ここでは、本当の権限チェックをサーバー側（API）で行う実装を見ていきます。
+
+## 保護対象 API
+
+`handson/api` に、最小構成の Express サーバーを用意しています。
+
+```js title="handson/api/src/server.js"
+app.get('/api/public', (req, res) => {
+  res.json({ message: '認証不要のエンドポイントです。誰でも呼び出せます。' })
+})
+
+app.get('/api/protected', requireAuth, (req, res) => {
+  res.json({ message: `こんにちは、${req.user.preferred_username} さん。`, roles: req.user.realm_access?.roles ?? [] })
+})
+
+app.get('/api/admin', requireAuth, requireRealmRole('admin'), (req, res) => {
+  res.json({ message: `管理者専用エンドポイントです。ようこそ、${req.user.preferred_username} さん。` })
+})
+```
+
+:::tip[今すぐ試す]
+`handson/api` で API サーバーを起動してください（Keycloak・SPA は起動したままにしておきます）。
+
+```bash
+cd handson/api
+npm install
+npm run dev
+```
+
+SPA 画面を一番下までスクロールすると「API を呼び出す」というボタンが3つあります。
+**期待される結果**: `alice`（`user` ロールのみ）でログインした状態で試すと、
+`/api/public` と `/api/protected` は成功しますが、`/api/admin` は
+`HTTP 403 { "error": "ロール 'admin' が必要です" }` になります。`bob`
+（`admin` ロールあり）でログインし直すと、`/api/admin` も成功します。
+:::
+
+## Bearer トークンでの認可
+
+SPA 側の呼び出しはシンプルです。
+
+```js title="handson/spa/src/main.js"
+const res = await fetch('http://localhost:3000/api/protected', {
+  headers: { Authorization: `Bearer ${keycloak.token}` },
+})
+```
+
+`Authorization: Bearer <アクセストークン>` ヘッダーを付けてリクエストするだけです。
+API 側はこのヘッダーからトークンを取り出し、次の3点を検証してから処理を行います。
+
+<Steps>
+1. トークンの**署名**が正しいか（Keycloak が発行したものに間違いないか）
+2. `iss`（発行者）が期待する realm の URL と一致するか
+3. `aud`（対象者）にこの API 自身が含まれているか
+</Steps>
+
+```js title="handson/api/src/server.js"
+const JWKS = createRemoteJWKSet(new URL(`${ISSUER}/protocol/openid-connect/certs`))
+
+async function requireAuth(req, res, next) {
+  const [scheme, token] = (req.headers.authorization ?? '').split(' ')
+  if (scheme !== 'Bearer' || !token) {
+    return res.status(401).json({ error: 'Authorization ヘッダーに Bearer トークンがありません' })
+  }
+  try {
+    const { payload } = await jwtVerify(token, JWKS, { issuer: ISSUER, audience: 'frontend-spa' })
+    req.user = payload
+    next()
+  } catch (err) {
+    return res.status(401).json({ error: 'トークンが無効です', detail: err.message })
+  }
+}
+```
+
+`jose` ライブラリの `createRemoteJWKSet` が [Part 2.3](/part2-concepts/3-auth-code-pkce/) で見た
+`.well-known` の `jwks_uri` から公開鍵を取得し、署名を検証してくれます。パスワードのような
+秘密情報を API 側で管理する必要は一切ありません。
+
+## ハマりどころ: アクセストークンには `aud` が入っていない
+
+ここは実際につまずいたポイントなので、そのまま共有します。API を最初に実装したとき、
+[Part 3.3](/part3-handson/3-tokens/) の ID トークンには `"aud": "frontend-spa"` が
+入っていたので、アクセストークンにも当然入っているだろうと考えて `audience: 'frontend-spa'`
+を検証条件にしたところ、`missing required "aud" claim` というエラーで**すべてのリクエストが
+401 になりました**。
+
+理由はシンプルで、**Keycloak のアクセストークンにはデフォルトで `aud` クレームが入らない**
+ためです（ID トークンは OIDC の仕様上 `aud` が必須ですが、アクセストークンの中身は
+Keycloak 側の設定に委ねられています）。これを解決するには、Client に **Audience mapper**
+を追加し、明示的に `aud: frontend-spa` をアクセストークンに含めるよう設定する必要があります。
+
+`demo` realm では、`frontend-spa` クライアントの **Client scopes → frontend-spa-dedicated →
+Mappers** に、あらかじめ次の Audience mapper を追加しています（`handson/keycloak/demo-realm.json`
+の `protocolMappers`）。
+
+| 設定項目 | 値 |
+|---|---|
+| Mapper type | Audience |
+| Included Client Audience | `frontend-spa` |
+| Add to access token | On |
+
+**自分の API を保護するときは、まずアクセストークンに期待通り `aud` が入っているか
+（トークンをデコードして）確認してから検証ロジックを書く**、という順序を覚えておくと
+この種のハマりを避けやすくなります。
+
+## Web Origins と、API 自身の CORS は別物
+
+[Part 3.1](/part3-handson/1-realm-client-user/) で Client に設定した **Web Origins** は、
+**Keycloak 自身のエンドポイント**（userinfo など）に対して、ブラウザからの JavaScript が
+直接アクセスしてよいオリジンを制御するものです。
+
+一方、今回作った `handson/api` は Keycloak とは別の、私たちが自分で書いたサーバーです。
+この API に対する CORS 許可は、**API 自身が独自に設定する必要があります**。
+
+```js title="handson/api/src/server.js"
+app.use(cors({ origin: 'http://localhost:5173' }))
+```
+
+この2つを混同し、「Keycloak の Web Origins を設定したから自分の API も安全なはず」と
+誤解してしまうケースは実務でもよく見られます。**Keycloak の Web Origins と、
+バックエンド API の CORS 設定は完全に独立している**と覚えておいてください。
+
+:::note
+`curl` などブラウザ以外のクライアントは CORS の制約を受けないため、
+`Origin` ヘッダーを偽って送っても `Access-Control-Allow-Origin` ヘッダーの値がずれるだけで
+リクエスト自体は届きます。CORS は「ブラウザが不正なオリジンからのレスポンス読み取りを
+ブロックする」ためのブラウザ側の仕組みであり、API 自体を保護するものではありません。
+API を本当に保護しているのは、あくまで前述の Bearer トークン検証です。
+:::
+
+## 次へ
+
+Part 3 のハンズオン本編はここまでです。ここまでで「動かす」「仕組みを理解する」
+「自分の手で作る」を一通り体験しました。次の Part 4 では、このシンプルな構成のままでは
+実務で必ず突き当たる現実的な課題（サードパーティ Cookie、BFF パターン、dev/prod の違い）を
+扱います。
+
+[Part 4.1: サードパーティ Cookie 問題](/part4-real-world/1-third-party-cookies/)
