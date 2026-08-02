@@ -9,6 +9,12 @@ export default defineConfig({
 			title: 'フロントエンドエンジニアのための Keycloak（非公式）',
 			description:
 				'Keycloak 公式ドキュメントをもとにした、フロントエンド / アプリケーションエンジニア向けの日本語ハンズオン学習サイト',
+			locales: {
+				root: {
+					label: '日本語',
+					lang: 'ja',
+				},
+			},
 			social: [
 				{
 					icon: 'github',
