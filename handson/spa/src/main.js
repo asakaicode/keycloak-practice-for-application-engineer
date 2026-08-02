@@ -14,12 +14,21 @@ async function main() {
 
 function renderAuthenticated() {
   const { preferred_username } = keycloak.tokenParsed
+  const isAdmin = keycloak.hasRealmRole('admin')
 
   document.querySelector('#app').innerHTML = `
     <section>
       <h1>ログイン成功</h1>
       <p>ようこそ、<strong>${preferred_username}</strong> さん。</p>
       <button id="logout">ログアウト</button>
+    </section>
+
+    <section>
+      <h2>メニュー</h2>
+      <ul>
+        <li>ダッシュボード（全ユーザーに表示）</li>
+        ${isAdmin ? '<li>ユーザー管理（admin ロールを持つユーザーにのみ表示）</li>' : ''}
+      </ul>
     </section>
 
     <section>
