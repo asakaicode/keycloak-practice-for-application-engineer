@@ -1,0 +1,111 @@
+---
+title: Realm / Client / User を自分の手で作る
+description: Admin Console を操作して、Realm・Client・User を自分の手で作りながら意味を理解します。
+---
+
+import { Steps } from '@astrojs/starlight/components';
+
+Part 1 で使った `demo` realm は、あらかじめ用意しておいた JSON ファイルから自動インポートされたものでした。
+ここでは同じものを **自分の手で Admin Console から作る**ことで、それぞれの設定項目が何を意味するのかを
+体に染み込ませます。
+
+## 前提
+
+Part 1.1 で Keycloak が起動していること（`http://localhost:8080`）。
+
+:::tip[今すぐ試す]
+`http://localhost:8080` を開き、`admin` / `admin` で Admin Console にログインしてください。
+（`docker-compose.yml` の `KC_BOOTSTRAP_ADMIN_USERNAME` / `KC_BOOTSTRAP_ADMIN_PASSWORD` で設定しています）
+:::
+
+## 1. Realm を作る
+
+Realm は「ユーザー・クライアント・ロールをひとまとめにする独立した管理単位」でした
+（[Part 2.2](/part2-concepts/2-oauth-oidc/) 参照）。まずはこの箱を作ります。
+
+<Steps>
+
+1. 左サイドバー上部の **Manage realms** をクリックします。
+
+2. **Create realm** ボタンをクリックします。
+
+3. **Realm name** に任意の名前（例: `my-first-realm`）を入力します。
+   `Enabled` は `On` のままにします。
+
+4. **Create** をクリックします。
+
+</Steps>
+
+作成が終わると、サイドバー上部の realm 表示が今作った realm に切り替わります。
+以降の操作はすべて「今どの realm を見ているか」に依存するため、作業前にここを確認する癖をつけてください。
+
+## 2. Client を作る
+
+Client は「認証を要求するアプリケーション」でした。Part 1 で使ったサンプル SPA 相当のものを作ります。
+
+<Steps>
+
+1. 左サイドバーの **Clients** → **Create client** をクリックします。
+
+2. **General settings**: `Client type` は `OpenID Connect` のまま、
+   `Client ID` に `frontend-spa` のような分かりやすい ID を入力し、**Next**。
+
+3. **Capability config**: ここが最も重要な画面です。
+
+   - **Client authentication**: `Off` のままにします。SPA はブラウザ上で動くため
+     クライアントシークレットを安全に保持できず、シークレットを使わない
+     **パブリッククライアント**として扱う必要があります（`Off` = パブリッククライアント）。
+   - **Authentication flow**: `Standard flow`（Authorization Code Flow）だけに
+     チェックが入っていることを確認します。`Direct access grants`（ROPC）や
+     `Implicit flow` は [Part 2.3](/part2-concepts/3-auth-code-pkce/) で触れた通り
+     公式にアンチパターンとされているため、チェックを入れません。
+   - **Require PKCE**: `On` にし、**PKCE Method** を `S256` にします。
+     これで [Part 2.3](/part2-concepts/3-auth-code-pkce/) で見た PKCE がこの
+     Client に対して必須になります。
+
+   入力できたら **Next**。
+
+4. **Login settings**:
+
+   - **Valid redirect URIs**: `http://localhost:5173/*`
+     （認可コードを受け取ってよい URL のパターン。ここに登録された URL 以外への
+     リダイレクトは拒否されます — [Part 5.1](/part5-error-lab/1-redirect-uri/) で
+     この設定ミスを実際に体験します）
+   - **Web origins**: `http://localhost:5173`
+     （ブラウザからのクロスオリジンリクエスト、CORS を許可するオリジン。
+     詳しくは [Part 3.6](/part3-handson/6-api-protection/) で扱います）
+
+   入力できたら **Save**。
+
+</Steps>
+
+`demo` realm の `frontend-spa` クライアントは、今と同じ設定を JSON で事前定義したものでした。
+[Part 3.2](/part3-handson/2-keycloak-js/) 以降で SPA から接続する際は、実際には `demo` realm と
+`frontend-spa` クライアント（すでに用意されているもの）を使い続けます。今作った Client は
+「設定項目の意味を理解するための練習」という位置づけです。
+
+## 3. User を作る
+
+<Steps>
+
+1. 左サイドバーの **Users** → **Create new user** をクリックします。
+
+2. **Username** に任意のユーザー名（例: `testuser`）を入力し、**Create**。
+
+3. 作成後の画面で **Credentials** タブを開き、**Set password** から
+   パスワードを設定します。ユーザー作成とパスワード設定が別ステップになっているのは、
+   パスワード以外の認証方法（外部 IdP 連携など）にも対応できるようにするためです。
+
+</Steps>
+
+`demo` realm の `alice` / `bob` も、内部的にはこれと同じ手順（+ 事前定義された `realmRoles`）
+で作られています。ロールの割り当ては [Part 3.5: ロールとクレームを UI に反映する](/part3-handson/5-roles-claims/)
+で扱います。
+
+## 次へ
+
+Realm・Client・User を自分の手で作ってみて、`demo` realm に何が入っていたかが具体的に
+分かったはずです。次はいよいよ、Part 1 で動かしたサンプル SPA の**コード**を見ながら、
+keycloak-js がどうやってこれらの設定を使っているのかを見ていきます。
+
+[Part 3.2: keycloak-js で SPA を保護する](/part3-handson/2-keycloak-js/)
