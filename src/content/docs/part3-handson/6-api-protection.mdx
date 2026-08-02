@@ -4,6 +4,7 @@ description: SPA から Bearer トークンで API を呼び出し、サーバ�
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
 
 [Part 3.5](/part3-handson/5-roles-claims/) の最後で触れた通り、フロントエンドでのロール分岐は
 見た目の制御にすぎません。ここでは、本当の権限チェックをサーバー側（API）で行う実装を見ていきます。
@@ -134,6 +135,8 @@ app.use(cors({ origin: 'http://localhost:5173' }))
 ブロックする」ためのブラウザ側の仕組みであり、API 自体を保護するものではありません。
 API を本当に保護しているのは、あくまで前述の Bearer トークン検証です。
 :::
+
+<ProgressChecklist />
 
 ## 次へ
 

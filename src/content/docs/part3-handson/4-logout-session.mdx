@@ -3,6 +3,8 @@ title: ログアウトとセッション
 description: keycloak.logout() の挙動と、SSO セッションのタイムアウト設定を理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Part 3.3 まででログイン・トークンの中身・更新を見てきました。ここでは「ログアウトすると
 何が終わるのか」「放置しているとセッションはいつ切れるのか」を扱います。
 
@@ -75,6 +77,8 @@ Client 作成時に Advanced タブで見た `Client Session Idle` / `Client Ses
 要求する設定のため）。ブラウザの Network タブで確認すると、`end_session` エンドポイントへの
 リクエストが飛んでいるのが見えます。
 :::
+
+<ProgressChecklist />
 
 ## 次へ
 

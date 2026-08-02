@@ -3,6 +3,8 @@ title: ロールとクレームを UI に反映する
 description: realm role と client role の違いを理解し、ロールに応じて SPA の表示を出し分けます。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 `demo` realm には `user` と `admin` という2つの realm role があり、`alice` には `user` のみ、
 `bob` には `user` と `admin` の両方が割り当てられていました（[Part 3.1](/part3-handson/1-realm-client-user/)）。
 ここでは、このロールをトークンから読み取り、SPA の表示に反映させます。
@@ -71,6 +73,8 @@ document.querySelector('#app').innerHTML = `
 「`admin` ロールを持つ人だけが本当にその操作をできる」という保証は、次の
 [Part 3.6: API を保護する](/part3-handson/6-api-protection/) で見るように、
 **API 側（サーバー側）でアクセストークンを検証して**初めて成立します。
+
+<ProgressChecklist />
 
 ## 次へ
 

@@ -4,6 +4,7 @@ description: Web Origins の設定漏れによる CORS エラーを実際に起�
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
 
 CORS エラーは「エラーメッセージを読んでもピンとこない」代表格です。実際に自分の手で
 起こしてから直すことで、次に遭遇したときに落ち着いて対処できるようにします。
@@ -70,6 +71,8 @@ CORS 関連ヘッダーを途中で落としてしまっている**だけ、と�
 Keycloak 側の設定は正しいのにブラウザにはエラーが見えるため、原因の切り分けを誤りやすい
 ポイントです。プロキシ配下で CORS エラーに遭遇したら、Keycloak に直接（プロキシを経由せず）
 リクエストして再現するかどうかを確認すると、切り分けが早くなります。
+
+<ProgressChecklist />
 
 ## 次へ
 

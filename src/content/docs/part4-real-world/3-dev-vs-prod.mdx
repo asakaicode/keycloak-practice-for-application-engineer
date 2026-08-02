@@ -3,6 +3,8 @@ title: dev と prod の違い
 description: start-dev と start の違い、リバースプロキシ配下での hostname 設定、redirect URI のワイルドカード禁止を理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 このハンズオンでは一貫して `docker-compose.yml` の `start-dev` コマンドで Keycloak を
 動かしてきました。ここでは、本番環境で Keycloak を運用する際に何が変わるのかを整理します。
 実際に本番構築をするページではなく、**「dev のままでは何がまずいのか」を知っておく**ための
@@ -69,6 +71,8 @@ description: start-dev と start の違い、リバースプロキシ配下で�
 | hostname | 自動推測 | `--hostname` で明示 |
 | プロキシ配下 | 想定しない | `--proxy-headers xforwarded` 等が必要 |
 | Redirect URI | ワイルドカード可 | ワイルドカード禁止・完全一致のみ |
+
+<ProgressChecklist />
 
 ## 次へ
 

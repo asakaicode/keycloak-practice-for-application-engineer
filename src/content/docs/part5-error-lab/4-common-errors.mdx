@@ -3,6 +3,8 @@ title: その他の頻出エラー早見表
 description: Part 5.1〜5.3 で扱わなかった、実務でよく遭遇するエラーとその対処法をまとめます。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Part 5.1〜5.3 で扱った3つ（redirect_uri 不一致・CORS・トークン期限切れ）以外にも、
 Keycloak を使う中でよく遭遇するエラーがあります。ここでは早見表としてまとめます。
 
@@ -28,6 +30,8 @@ Keycloak を使う中でよく遭遇するエラーがあります。ここで�
    実際の値と見比べる
 4. Keycloak コンテナのログ（`docker compose logs keycloak`）にも、サーバー側で拒否した
    理由が出力されていることが多い
+
+<ProgressChecklist />
 
 ## 次へ
 

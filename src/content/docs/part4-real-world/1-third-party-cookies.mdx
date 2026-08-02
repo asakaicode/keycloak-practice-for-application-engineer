@@ -3,6 +3,8 @@ title: サードパーティ Cookie 問題
 description: checkLoginIframe や silent-check-sso が、ブラウザのサードパーティ Cookie 制限によって機能しなくなる問題を理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 ここからは Part 3 までのシンプルな構成のままでは実務で必ずぶつかる、現実的な課題を扱います。
 最初はブラウザのプライバシー保護機能が引き起こす問題です。
 
@@ -60,6 +62,8 @@ iframe に頼らずにサーバーサイドでセッションを一元管理す�
 なお、ブラウザ標準でクロスサイトの認証状態を安全に共有する仕組みとして **FedCM
 （Federated Credential Management）** という API も策定が進んでいますが、
 本稿執筆時点（2026年8月）で Keycloak 側の対応は発展途上です。
+
+<ProgressChecklist />
 
 ## 次へ
 

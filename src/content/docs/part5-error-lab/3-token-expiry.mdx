@@ -3,6 +3,8 @@ title: トークン期限切れ体験
 description: アクセストークンが切れた状態で API を呼ぶとどうなるかを体験し、自動リカバリを実装します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 `demo` realm のアクセストークンの有効期限は、[Part 3.3](/part3-handson/3-tokens/) で見た通り
 **300秒（5分）**です。実際に5分待つのは大変なので、ここではトークンをわざと壊すことで
 「期限切れ」と同じ状況（＝ API から見て無効なトークン）を再現します。
@@ -66,6 +68,8 @@ async function callApi(path, withToken, isRetry = false) {
 ユーザーに再ログインしてもらうことです。今回のサンプル SPA では簡略化のため、
 リカバリに失敗した場合はそのままエラーレスポンスを表示するだけにしていますが、
 実務ではここで再ログインへ誘導する UI を出す実装が必要になります。
+
+<ProgressChecklist />
 
 ## 次へ
 

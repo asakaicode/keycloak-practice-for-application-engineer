@@ -3,6 +3,8 @@ title: OAuth 2.0 / OIDC のメンタルモデル
 description: OAuth 2.0 と OpenID Connect の役割の違い、登場人物、そして Keycloak の用語との対応関係を整理します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Keycloak は独自プロトコルを話しているわけではなく、**OAuth 2.0** と **OpenID Connect（OIDC）**
 という2つの業界標準プロトコルを実装したソフトウェアです。ここでは、この2つが何を解決するのか、
 そして Keycloak の管理画面に出てくる用語（Realm・Client・User・Role・Scope）が
@@ -71,6 +73,8 @@ Realm だけは OAuth 2.0 / OIDC の標準仕様には出てこない、Keycloak
 が持つ**マルチテナント機能**のための概念です。1つの Keycloak サーバーで複数の組織・
 プロダクトの認証をまとめて運用するときに、設定やユーザーを分離するために使います。
 :::
+
+<ProgressChecklist />
 
 ## 次へ
 

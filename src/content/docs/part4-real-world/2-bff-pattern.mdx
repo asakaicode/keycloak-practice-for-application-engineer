@@ -3,6 +3,8 @@ title: BFF パターン
 description: トークンをブラウザに置かない BFF（Backend for Frontend）パターンを、公式ガイダンスの範囲を明示しながら理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Part 1〜3 で作ったサンプル SPA は、Keycloak の**パブリッククライアント**としてブラウザの中で
 直接トークンを扱う構成でした。これは Keycloak 公式の JavaScript アダプタが想定する、
 最も基本的な構成です。一方で、セキュリティ要件がより高い実務のシステムでは、
@@ -63,6 +65,8 @@ BFF パターンは安全性を大きく高めますが、代わりに**専用�
 このサイトのハンズオンでパブリッククライアント構成を選んだのは、[Part 1](/part1-quickstart/1-docker/)
 で触れた通り「まず動かして仕組みを理解する」ことを優先したためです。実務でどこまでの
 構成を選ぶかは、扱うデータの機密性や開発・運用コストとのバランスで判断することになります。
+
+<ProgressChecklist />
 
 ## 次へ
 

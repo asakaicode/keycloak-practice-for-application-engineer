@@ -4,6 +4,7 @@ description: Keycloak を使った開発で最も高頻度で遭遇するエラ�
 ---
 
 import { Steps } from '@astrojs/starlight/components';
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
 
 ここからは**エラー体験ラボ**です。実務で Keycloak を使い始めると必ず一度は遭遇するエラーを、
 このページでは**わざと自分で起こし**、エラーメッセージの読み方と直し方を身につけます。
@@ -79,6 +80,8 @@ Invalid parameter: redirect_uri
 （末尾スラッシュなし・ワイルドカードなし）と登録していたら、Vite の開発サーバーが
 `http://localhost:5173/` を `redirect_uri` として送った瞬間に、このエラーで
 詰まっていたはずです。
+
+<ProgressChecklist />
 
 ## 次へ
 

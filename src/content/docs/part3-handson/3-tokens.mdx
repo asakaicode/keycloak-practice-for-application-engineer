@@ -3,6 +3,8 @@ title: トークン深掘り
 description: ログイン後に手に入る3種類のトークンの違いと中身、有効期限の更新、安全な保持方法を理解します。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 Part 3.2 でログインすると、SPA は Keycloak から**3種類のトークン**を受け取っていました。
 ここではそれぞれの違いと中身、そして「トークンをどこに保存するべきか」を掘り下げます。
 
@@ -119,6 +121,8 @@ JSON.stringify({ localStorage: { ...localStorage }, sessionStorage: { ...session
 減らす」という多層防御の一つです。トークンを `localStorage` に自分で保存するコードを
 書かないことが、この原則を守るために私たちができる最も簡単な対策です。
 :::
+
+<ProgressChecklist />
 
 ## 次へ
 

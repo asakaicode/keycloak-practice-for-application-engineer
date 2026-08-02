@@ -3,6 +3,8 @@ title: OIDC エンドポイント早見表
 description: demo realm の主要な OIDC エンドポイントと、それぞれの役割をまとめます。
 ---
 
+import ProgressChecklist from '../../../components/ProgressChecklist.astro';
+
 [Part 2.3](/part2-concepts/3-auth-code-pkce/) で紹介した `.well-known/openid-configuration`
 から取得できる、主要なエンドポイントの一覧です。`demo` realm での実際の値を掲載しています
 （他の realm では `/realms/demo/` の部分がその realm 名に変わります）。
@@ -48,6 +50,8 @@ curl -s http://localhost:8080/realms/demo/.well-known/openid-configuration | jq
 - 自分のコードでこれらの URL を直接組み立てる必要はほとんどありません。keycloak-js や
   多くの OIDC ライブラリは、Discovery ドキュメントを一度取得すれば、そこから
   必要なエンドポイントを自動的に解決します。
+
+<ProgressChecklist />
 
 ## 次へ
 
