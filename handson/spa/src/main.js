@@ -66,14 +66,25 @@ function renderAuthenticated() {
 
 const API_BASE_URL = 'http://localhost:3000'
 
-async function callApi(path, withToken) {
+async function callApi(path, withToken, isRetry = false) {
   const resultEl = document.querySelector('#api-result')
-  resultEl.textContent = '呼び出し中...'
+  resultEl.textContent = isRetry ? 'トークンを更新して再試行中...' : '呼び出し中...'
 
   const headers = withToken ? { Authorization: `Bearer ${keycloak.token}` } : {}
   const res = await fetch(API_BASE_URL + path, { headers })
-  const body = await res.json()
 
+  // 401（トークン切れ・無効）が返ってきたら、一度だけ updateToken() で
+  // 更新してから同じリクエストを自動的にやり直す。
+  if (res.status === 401 && withToken && !isRetry) {
+    try {
+      await keycloak.updateToken(-1)
+      return callApi(path, withToken, true)
+    } catch {
+      // 更新自体が失敗した場合（リフレッシュトークンも失効済み等）はそのまま結果を表示する
+    }
+  }
+
+  const body = await res.json()
   resultEl.textContent = `HTTP ${res.status}\n${JSON.stringify(body, null, 2)}`
 }
 
