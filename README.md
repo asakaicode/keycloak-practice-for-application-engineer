@@ -8,7 +8,8 @@ Keycloak 公式ドキュメントをもとにした、フロントエンド / �
 
 ## 現在のステータス
 
-📋 **プランニング段階** — 構築・執筆・公開の全体計画は [docs/plans/PLAN.md](./docs/plans/PLAN.md) を参照。
+📋 **プランニング段階** — 構築・執筆・公開の全体計画は
+[docs/plans/2026-08-02-keycloak-learning-site-plan.md](./docs/plans/2026-08-02-keycloak-learning-site-plan.md) を参照。
 
 ## フェーズ概要
 
