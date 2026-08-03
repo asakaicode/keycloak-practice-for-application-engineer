@@ -17,6 +17,7 @@ export default defineConfig({
 			title: 'フロントエンドエンジニアのための Keycloak（非公式）',
 			description:
 				'Keycloak 公式ドキュメントをもとにした、フロントエンド / アプリケーションエンジニア向けの日本語ハンズオン学習サイト',
+			favicon: '/favicon.png',
 			locales: {
 				root: {
 					label: '日本語',
