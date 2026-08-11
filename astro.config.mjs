@@ -6,6 +6,7 @@ import starlightLinksValidator from 'starlight-links-validator';
 
 // https://astro.build/config
 export default defineConfig({
+	site: 'https://keycloak-for-frontend.dev',
 	integrations: [
 		// astro-mermaid must be registered before starlight.
 		mermaid({
@@ -16,6 +17,7 @@ export default defineConfig({
 			title: 'フロントエンドエンジニアのための Keycloak（非公式）',
 			description:
 				'Keycloak 公式ドキュメントをもとにした、フロントエンド / アプリケーションエンジニア向けの日本語ハンズオン学習サイト',
+			favicon: '/favicon.png',
 			locales: {
 				root: {
 					label: '日本語',
@@ -27,6 +29,19 @@ export default defineConfig({
 					icon: 'github',
 					label: 'GitHub',
 					href: 'https://github.com/asakaicode/keycloak-practice-for-application-engineer',
+				},
+			],
+			components: {
+				Footer: './src/components/SiteFooter.astro',
+			},
+			head: [
+				{
+					tag: 'meta',
+					attrs: { property: 'og:image', content: 'https://keycloak-for-frontend.dev/houston-og.webp' },
+				},
+				{
+					tag: 'meta',
+					attrs: { name: 'twitter:card', content: 'summary_large_image' },
 				},
 			],
 			plugins: [starlightLinksValidator()],
