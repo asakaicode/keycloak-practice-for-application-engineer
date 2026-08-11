@@ -156,16 +156,18 @@ Pagefind の日本語検索が実コンテンツで機能する（`npm run build
 
 **目的**: 内容に納得できた時点で、最小の手間で公開する。
 
-- [ ] 公開前の体裁: サイト名・説明文の確定、ファビコン/OGP 画像、404 ページ
-- [ ] **ライセンス表記とディスクレーマーのページ**（前述の4点。フッターからリンク）
-- [ ] `wrangler.jsonc` 追加（上記の最小構成）
+- [x] 公開前の体裁: サイト名・説明文の確定、ファビコン/OGP 画像、404 ページ
+      （404 ページは Starlight が日本語ロケール設定に基づき自動生成するため追加対応不要と判断）
+- [x] **ライセンス表記とディスクレーマーのページ**（前述の4点。フッターからリンク）
+- [x] `wrangler.jsonc` 追加（上記の最小構成）
 - [ ] Cloudflare ダッシュボード > Workers & Pages > Create > **Import a repository** で
       GitHub リポジトリを接続（build: `npm run build`、deploy: `npx wrangler deploy`）
 - [ ] 非 production ブランチの deploy command を `npx wrangler versions upload` にして
       ブランチ preview を有効化
 - [ ] `*.workers.dev` URL で公開確認（検索・Mermaid・クイズ・ダークモードの動作チェック）
-- [ ] （任意）カスタムドメイン: DNS ゾーンを Cloudflare に置き、Worker の
-      Settings > Domains & Routes から追加（DNS・証明書は自動）
+- [ ] カスタムドメイン（`keycloak-for-frontend.dev`、Cloudflare Registrar で取得）:
+      DNS ゾーンを Cloudflare に置き、Worker の Settings > Domains & Routes から追加
+      （DNS・証明書は自動）
 
 **完了条件**: main への push で自動デプロイされ、公開 URL で全機能が動く。
 
